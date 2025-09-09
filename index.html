@@ -51,8 +51,8 @@
         .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--card-bg-color); color: var(--text-color); }
         .leaflet-popup-content { font-family: 'Inter', sans-serif; }
         #projects-table-body tr { cursor: pointer; }
-        #project-modal { transition: opacity 0.3s ease-in-out; }
-        #project-modal-content { transition: transform 0.3s ease-in-out; }
+        #project-modal, #developer-modal, #comparison-modal { transition: opacity 0.3s ease-in-out; }
+        #project-modal-content, #developer-modal-content, #comparison-modal-content { transition: transform 0.3s ease-in-out; }
     </style>
 </head>
 <body class="antialiased">
@@ -84,7 +84,9 @@
 
          <!-- Map Section -->
         <div id="map" class="w-full h-96 md:h-[500px] mb-8 rounded-2xl shadow-lg border-2 border-white dark:border-gray-700"></div>
-        <p class="text-xs text-center text-gray-500 dark:text-gray-400 -mt-6 mb-8">Note: Project locations are approximate and based on publicly available information.</p>
+        <p class="text-xs text-center text-gray-500 dark:text-gray-400 -mt-6 mb-2">Note: Project locations are approximate and based on publicly available information.</p>
+        <p class="text-sm text-red-600 text-center mb-8">Programmed by Engr. Franz Xyrlo I. Tobias, PEE.</p>
+
 
         <!-- Main Content Section -->
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
@@ -143,15 +145,21 @@
                 </div>
             </div>
             
-            <!-- New Charts and Leaderboard Section -->
+            <!--  Charts and Leaderboard Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                 <div class="lg:col-span-2">
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 text-center">Capacity by GEA Round (MW)</h3>
                     <canvas id="gea-round-chart"></canvas>
                 </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 text-center">Top 5 Developers</h3>
-                    <div id="developer-leaderboard" class="space-y-2"></div>
+                <div class="flex flex-col">
+                    <div class="text-center mb-2">
+                         <h3 id="leaderboard-title" class="text-lg font-semibold text-gray-800 dark:text-gray-200">Top 10 Developers</h3>
+                         <select id="leaderboard-sort" class="mt-1 w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                            <option value="capacity">By Total Capacity (MW)</option>
+                            <option value="projects">By Number of Projects</option>
+                        </select>
+                    </div>
+                    <div id="developer-leaderboard" class="space-y-2 flex-grow"></div>
                 </div>
             </div>
 
@@ -165,23 +173,65 @@
                     <canvas id="target-chart"></canvas>
                 </div>
             </div>
+            
+            <!-- Timeline Chart Section -->
+             <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 text-center">Project Delivery Timeline</h3>
+                <div class="h-96 w-full"><canvas id="timeline-chart"></canvas></div>
+            </div>
 
 
             <!-- Table Section -->
             <div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"><thead class="bg-gray-50 dark:bg-gray-700"><tr><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="gea">GEA <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="year">Year <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="grid">Grid <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="type">Technology <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="facilityName">Project Name <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="developer">Developer <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="capacity">Capacity (MW) <span class="sort-arrow">↕️</span></th></tr></thead><tbody id="projects-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"></tbody></table><p id="no-results" class="text-center py-8 text-gray-500 dark:text-gray-400 hidden">No projects match the selected filters.</p></div>
+
+            <!-- Comparison Section -->
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Compare Developers</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                    <select id="compare-dev-1" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                        <option value="">Select Developer 1</option>
+                    </select>
+                    <select id="compare-dev-2" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                        <option value="">Select Developer 2</option>
+                    </select>
+                    <button id="compare-btn" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">Compare</button>
+                </div>
+            </div>
         </div>
 
-        <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400"><p>Programmed by Engr. Franz Xyrlo I. Tobias, PEE. Data sourced from DOE public records.</p></footer>
+        <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400"><p>Data sourced from DOE public records.</p></footer>
     </div>
 
     <!-- Project Detail Modal -->
     <div id="project-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
         <div id="project-modal-content" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-95">
-            <div class="sticky top-0 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <div class="sticky top-0 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center z-10">
                 <h2 id="modal-title" class="text-xl font-bold text-gray-800 dark:text-gray-100">Project Details</h2>
                 <button id="modal-close-btn" class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-3xl">&times;</button>
             </div>
             <div id="modal-body" class="p-6"></div>
+        </div>
+    </div>
+    
+    <!-- Developer Detail Modal -->
+    <div id="developer-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div id="developer-modal-content" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform scale-95">
+            <div class="sticky top-0 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center z-10">
+                <h2 id="developer-modal-title" class="text-xl font-bold text-gray-800 dark:text-gray-100">Developer Details</h2>
+                <button id="developer-modal-close-btn" class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-3xl">&times;</button>
+            </div>
+            <div id="developer-modal-body" class="p-6 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Comparison Modal -->
+    <div id="comparison-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div id="comparison-modal-content" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col transform scale-95">
+            <div class="sticky top-0 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center z-10">
+                <h2 id="comparison-modal-title" class="text-xl font-bold text-gray-800 dark:text-gray-100">Developer Comparison</h2>
+                <button id="comparison-modal-close-btn" class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-3xl">&times;</button>
+            </div>
+            <div id="comparison-modal-body" class="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6"></div>
         </div>
     </div>
 
@@ -476,21 +526,42 @@
         const projectCountEl = document.getElementById('project-count');
         const noResultsEl = document.getElementById('no-results');
         const tableHeaders = document.querySelectorAll('th[data-sort]');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        const developerLeaderboardEl = document.getElementById('developer-leaderboard');
+        const leaderboardTitleEl = document.getElementById('leaderboard-title');
+        const leaderboardSortEl = document.getElementById('leaderboard-sort');
+        const compareDev1El = document.getElementById('compare-dev-1');
+        const compareDev2El = document.getElementById('compare-dev-2');
+        const compareBtn = document.getElementById('compare-btn');
+
+        // Modals
         const projectModal = document.getElementById('project-modal');
         const projectModalContent = document.getElementById('project-modal-content');
         const modalCloseBtn = document.getElementById('modal-close-btn');
         const modalTitle = document.getElementById('modal-title');
         const modalBody = document.getElementById('modal-body');
-        const darkModeToggle = document.getElementById('dark-mode-toggle');
-        const sunIcon = document.getElementById('sun-icon');
-        const moonIcon = document.getElementById('moon-icon');
-        const developerLeaderboardEl = document.getElementById('developer-leaderboard');
+        
+        const developerModal = document.getElementById('developer-modal');
+        const developerModalContent = document.getElementById('developer-modal-content');
+        const developerModalCloseBtn = document.getElementById('developer-modal-close-btn');
+        const developerModalTitle = document.getElementById('developer-modal-title');
+        const developerModalBody = document.getElementById('developer-modal-body');
+        
+        const comparisonModal = document.getElementById('comparison-modal');
+        const comparisonModalContent = document.getElementById('comparison-modal-content');
+        const comparisonModalCloseBtn = document.getElementById('comparison-modal-close-btn');
+        const comparisonModalTitle = document.getElementById('comparison-modal-title');
+        const comparisonModalBody = document.getElementById('comparison-modal-body');
+
 
         // --- STATE & INSTANCES ---
         let sortState = { column: 'year', direction: 'asc' };
         let map, markerLayer;
         let currentFilteredProjects = [];
-        let geaRoundChart, techDistChart, targetChart;
+        let geaRoundChart, techDistChart, targetChart, timelineChart;
+        let devModalChart, comparisonChart1, comparisonChart2;
 
         // --- FUNCTIONS ---
 
@@ -518,9 +589,9 @@
             if(map && gridViews[grid]) { map.flyTo(...gridViews[grid]); }
         }
 
-        function showProjectModal(projectId) {
-            // A bit of a hack since GEA-4 IDs are not unique across all GEAs.
-            const project = projects.find(p => p.id === projectId && p.gea === parseInt(geaFilter.value)) || projects.find(p => p.id === projectId);
+        // --- MODAL FUNCTIONS ---
+        function showProjectModal(projectId, geaRound) {
+            const project = projects.find(p => p.id === projectId && p.gea === geaRound);
             if (!project) return;
             modalTitle.textContent = project.facilityName;
             modalBody.innerHTML = `<div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm"><div><dt class="text-gray-500 dark:text-gray-400">GEA Round</dt><dd class="text-gray-900 dark:text-gray-100 font-bold">GEA-${project.gea}</dd></div><div><dt class="text-gray-500 dark:text-gray-400">Target Year</dt><dd class="text-gray-900 dark:text-gray-100 font-medium">${project.year}</dd></div><div><dt class="text-gray-500 dark:text-gray-400">Developer</dt><dd class="text-gray-900 dark:text-gray-100 font-medium">${project.developer}</dd></div><div><dt class="text-gray-500 dark:text-gray-400">Grid</dt><dd class="text-gray-900 dark:text-gray-100 font-medium">${project.grid}</dd></div><div><dt class="text-gray-500 dark:text-gray-400">Technology</dt><dd class="text-gray-900 dark:text-gray-100 font-medium">${project.type}</dd></div><div><dt class="text-gray-500 dark:text-gray-400">Awarded Capacity</dt><dd class="text-gray-900 dark:text-gray-100 font-medium">${formatNumber(project.capacity)} MW</dd></div></div>`;
@@ -528,11 +599,126 @@
             projectModalContent.classList.remove('scale-95');
         }
 
-        function hideProjectModal() {
-            projectModal.classList.add('opacity-0', 'pointer-events-none');
-            projectModalContent.classList.add('scale-95');
+        function hideModal(modal, content) {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.add('scale-95');
+        }
+        
+        function showDeveloperModal(developerName) {
+            const devProjects = projects.filter(p => p.developer === developerName);
+            const totalCapacity = devProjects.reduce((sum, p) => sum + p.capacity, 0);
+            const totalProjects = devProjects.length;
+
+            const dataByTech = devProjects.reduce((acc, p) => { acc[p.type] = (acc[p.type] || 0) + p.capacity; return acc; }, {});
+            const techLabels = Object.keys(dataByTech).sort();
+            const techData = techLabels.map(label => dataByTech[label]);
+            const techColors = techLabels.map(label => iconColors[label] || '#888');
+
+            developerModalTitle.textContent = developerName;
+            let projectListHtml = devProjects.map(p => `
+                <div class="grid grid-cols-5 gap-4 text-sm py-2 border-b border-gray-200 dark:border-gray-700">
+                    <span class="font-medium col-span-2">${p.facilityName}</span>
+                    <span>GEA-${p.gea}</span>
+                    <span>${p.grid}</span>
+                    <span class="text-right font-semibold">${formatNumber(p.capacity, 2)} MW</span>
+                </div>
+            `).join('');
+
+            developerModalBody.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="md:col-span-1">
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg text-center">
+                                <div class="text-sm font-medium text-gray-600 dark:text-gray-300">Total Capacity</div>
+                                <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">${formatNumber(totalCapacity, 2)} MW</div>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg text-center">
+                                <div class="text-sm font-medium text-gray-600 dark:text-gray-300">Total Projects</div>
+                                <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">${totalProjects}</div>
+                            </div>
+                            <div>
+                                <h4 class="text-center font-semibold mb-2">Technology Mix</h4>
+                                <canvas id="dev-modal-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                         <h4 class="font-semibold mb-2">Projects Awarded</h4>
+                         <div class="text-xs text-gray-500 dark:text-gray-400 grid grid-cols-5 gap-4 font-bold mb-1 px-1">
+                            <span class="col-span-2">Project Name</span><span>GEA</span><span>Grid</span><span class="text-right">Capacity</span>
+                         </div>
+                         <div class="max-h-96 overflow-y-auto pr-2">${projectListHtml}</div>
+                    </div>
+                </div>
+            `;
+            
+            developerModal.classList.remove('opacity-0', 'pointer-events-none');
+            developerModalContent.classList.remove('scale-95');
+
+            if(devModalChart) devModalChart.destroy();
+            devModalChart = new Chart(document.getElementById('dev-modal-chart').getContext('2d'), { 
+                type: 'doughnut', 
+                data: { labels: techLabels, datasets: [{ data: techData, backgroundColor: techColors, borderColor: document.documentElement.classList.contains('dark') ? '#1f2937' : '#fff' }] },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        }
+        
+        function showComparisonModal(dev1Name, dev2Name) {
+            comparisonModalTitle.textContent = `Comparing ${dev1Name} vs. ${dev2Name}`;
+            
+            const createColumn = (devName) => {
+                const devProjects = projects.filter(p => p.developer === devName);
+                if (devProjects.length === 0) return `<div><h3 class="text-lg font-bold mb-4">${devName}</h3><p>No data found.</p></div>`;
+                
+                const totalCapacity = devProjects.reduce((sum, p) => sum + p.capacity, 0);
+                const totalProjects = devProjects.length;
+                const dataByTech = devProjects.reduce((acc, p) => { acc[p.type] = (acc[p.type] || 0) + p.capacity; return acc; }, {});
+
+                return `
+                    <div>
+                        <h3 class="text-lg font-bold mb-4 text-center">${devName}</h3>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg text-center">
+                                <div class="text-xs font-medium text-gray-600 dark:text-gray-300">Total Capacity</div>
+                                <div class="text-xl font-bold text-indigo-600 dark:text-indigo-400">${formatNumber(totalCapacity, 2)} MW</div>
+                            </div>
+                             <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg text-center">
+                                <div class="text-xs font-medium text-gray-600 dark:text-gray-300">Total Projects</div>
+                                <div class="text-xl font-bold text-indigo-600 dark:text-indigo-400">${totalProjects}</div>
+                            </div>
+                        </div>
+                        <h4 class="text-center font-semibold mb-2">Technology Mix (by MW)</h4>
+                        <canvas id="comp-chart-${devName.replace(/\W/g, '')}"></canvas>
+                    </div>
+                `;
+            }
+
+            comparisonModalBody.innerHTML = createColumn(dev1Name) + createColumn(dev2Name);
+            comparisonModal.classList.remove('opacity-0', 'pointer-events-none');
+            comparisonModalContent.classList.remove('scale-95');
+
+            // Render charts
+            [dev1Name, dev2Name].forEach(devName => {
+                const devProjects = projects.filter(p => p.developer === devName);
+                const dataByTech = devProjects.reduce((acc, p) => { acc[p.type] = (acc[p.type] || 0) + p.capacity; return acc; }, {});
+                const techLabels = Object.keys(dataByTech).sort();
+                const techData = techLabels.map(label => dataByTech[label]);
+                const techColors = techLabels.map(label => iconColors[label] || '#888');
+
+                const chartId = `comp-chart-${devName.replace(/\W/g, '')}`;
+                let existingChart = Chart.getChart(chartId);
+                if(existingChart) existingChart.destroy();
+                
+                new Chart(document.getElementById(chartId).getContext('2d'), { 
+                    type: 'pie', 
+                    data: { labels: techLabels, datasets: [{ data: techData, backgroundColor: techColors, borderColor: document.documentElement.classList.contains('dark') ? '#1f2937' : '#fff' }] },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+                });
+            });
         }
 
+
+        // --- CORE UI & DATA FUNCTIONS ---
         function formatNumber(value, digits = 3) { return new Intl.NumberFormat('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value); }
         
         function renderTable(projectList) {
@@ -542,6 +728,7 @@
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
                 row.dataset.projectId = project.id;
+                row.dataset.projectGea = project.gea;
                 row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">GEA-${project.gea}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">${project.year}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${project.grid}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${project.type}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 max-w-xs truncate" title="${project.facilityName}">${project.facilityName}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate" title="${project.developer}">${project.developer}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 font-medium text-right">${formatNumber(project.capacity)}</td>`;
                 tableBody.appendChild(row);
             });
@@ -563,13 +750,18 @@
             
             const developers = [...new Set(projects.map(p => p.developer))].sort();
             developerFilter.innerHTML = '<option value="all">All Developers</option>';
-            developers.forEach(dev => developerFilter.add(new Option(dev, dev)));
+            compareDev1El.innerHTML = '<option value="">Select Developer 1</option>';
+            compareDev2El.innerHTML = '<option value="">Select Developer 2</option>';
+            developers.forEach(dev => {
+                developerFilter.add(new Option(dev, dev));
+                compareDev1El.add(new Option(dev, dev));
+                compareDev2El.add(new Option(dev, dev));
+            });
         }
 
         function updateCharts(projectList) {
             const isDarkMode = document.documentElement.classList.contains('dark');
             const textColor = isDarkMode ? '#f9fafb' : '#1f2937';
-            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
             Chart.defaults.color = textColor;
 
             // --- Technology Distribution (Donut Chart) ---
@@ -581,7 +773,7 @@
             techDistChart = new Chart(document.getElementById('tech-dist-chart').getContext('2d'), { 
                 type: 'doughnut', 
                 data: { labels: techLabels, datasets: [{ data: techData, backgroundColor: techColors, borderColor: isDarkMode ? '#1f2937' : '#fff' }] },
-                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+                options: { responsive: true, plugins: { legend: { position: 'top' } }, onClick: handleChartClick }
             });
 
             // --- Capacity by GEA Round (Stacked Bar Chart) ---
@@ -591,9 +783,7 @@
                 return {
                     label: tech,
                     data: geaRounds.map(round => {
-                        return projectList
-                            .filter(p => p.gea === round && p.type === tech)
-                            .reduce((sum, p) => sum + p.capacity, 0);
+                        return projectList.filter(p => p.gea === round && p.type === tech).reduce((sum, p) => sum + p.capacity, 0);
                     }),
                     backgroundColor: iconColors[tech] || '#888'
                 };
@@ -605,7 +795,8 @@
                 options: {
                     responsive: true,
                     plugins: { legend: { display: false } },
-                    scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: value => `${value} MW` } } }
+                    scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: value => `${value} MW` } } },
+                    onClick: handleChartClick
                 }
             });
 
@@ -624,23 +815,102 @@
                 },
                 options: { responsive: true, indexAxis: 'y', scales: { x: { ticks: { callback: value => `${value} MW` } } } }
             });
+
+             // --- Timeline Chart ---
+            const timelineData = {
+                labels: projectList.map(p => p.facilityName),
+                datasets: [{
+                    label: 'Delivery Year',
+                    data: projectList.map(p => [p.year, p.year + 0.9]), // [start, end]
+                    backgroundColor: projectList.map(p => iconColors[p.type] || '#888'),
+                    barPercentage: 0.5,
+                }]
+            };
+            if(timelineChart) timelineChart.destroy();
+            timelineChart = new Chart(document.getElementById('timeline-chart').getContext('2d'), {
+                type: 'bar',
+                data: timelineData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false },
+                        x: {
+                            min: Math.min(...projects.map(p => p.year)) -1,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function handleChartClick(event, elements, chart) {
+            if (elements.length === 0) return;
+            
+            if (chart.canvas.id === 'tech-dist-chart') {
+                const label = chart.data.labels[elements[0].index];
+                typeFilter.value = label;
+            } else if (chart.canvas.id === 'gea-round-chart') {
+                const label = chart.data.labels[elements[0].index];
+                const geaRound = label.split('-')[1];
+                geaFilter.value = geaRound;
+            } else {
+                return;
+            }
+            applyFiltersAndSort();
+        }
+
+        function updateLeaderboardTitle() {
+            let title = "Top 10 Developers";
+            const filters = [];
+            if (gridFilter.value !== 'all') filters.push(`in ${gridFilter.value}`);
+            if (typeFilter.value !== 'all') filters.push(`for ${typeFilter.value}`);
+            if (yearFilter.value !== 'all') filters.push(`in ${yearFilter.value}`);
+            if (geaFilter.value !== 'all') filters.push(`in GEA-${geaFilter.value}`);
+
+            if (filters.length > 0) {
+                title += ` ${filters.join(' ')}`;
+            }
+            leaderboardTitleEl.textContent = title;
         }
 
         function updateLeaderboard(projectList) {
-            const dataByDev = projectList.reduce((acc, p) => { acc[p.developer] = (acc[p.developer] || 0) + p.capacity; return acc; }, {});
-            const sortedDevs = Object.entries(dataByDev).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            updateLeaderboardTitle();
+            const sortBy = leaderboardSortEl.value;
+            let sortedDevs;
+
+            if (sortBy === 'projects') {
+                const dataByDev = projectList.reduce((acc, p) => {
+                    if (!acc[p.developer]) acc[p.developer] = { count: 0, capacity: 0 };
+                    acc[p.developer].count++;
+                    acc[p.developer].capacity += p.capacity;
+                    return acc;
+                }, {});
+                sortedDevs = Object.entries(dataByDev).sort((a, b) => b[1].count - a[1].count).slice(0, 10);
+            } else { // Sort by capacity
+                const dataByDev = projectList.reduce((acc, p) => { 
+                    if (!acc[p.developer]) acc[p.developer] = { capacity: 0, count: 0 };
+                    acc[p.developer].capacity += p.capacity;
+                    acc[p.developer].count++;
+                    return acc; 
+                }, {});
+                sortedDevs = Object.entries(dataByDev).sort((a, b) => b[1].capacity - a[1].capacity).slice(0, 10);
+            }
             
             let html = '';
             if (sortedDevs.length === 0) {
                 html = `<div class="text-center text-gray-500 dark:text-gray-400 p-4">No developers found.</div>`;
             } else {
-                sortedDevs.forEach(([name, capacity], index) => {
+                sortedDevs.forEach(([name, data], index) => {
+                    const value = sortBy === 'projects' ? `${data.count} project${data.count > 1 ? 's' : ''}` : `${formatNumber(data.capacity, 2)} MW`;
                     html += `<div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                                 <div class="flex items-center min-w-0">
                                     <span class="text-sm font-bold text-gray-600 dark:text-gray-300 w-6">${index + 1}.</span>
-                                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate" title="${name}">${name}</p>
+                                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer" title="${name}" data-developer="${name}">${name}</p>
                                 </div>
-                                <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0 ml-2">${formatNumber(capacity, 2)} MW</p>
+                                <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0 ml-2">${value}</p>
                             </div>`;
                 });
             }
@@ -675,6 +945,7 @@
 
         function resetFilters() {
             searchFilter.value = ''; geaFilter.selectedIndex = 0; gridFilter.selectedIndex = 0; yearFilter.selectedIndex = 0; typeFilter.selectedIndex = 0; developerFilter.selectedIndex = 0;
+            leaderboardSortEl.selectedIndex = 0;
             sortState = { column: 'year', direction: 'asc' };
             applyFiltersAndSort();
             zoomToGrid('all');
@@ -714,32 +985,56 @@
         });
 
         // --- EVENT LISTENERS ---
-        [searchFilter, geaFilter, yearFilter, typeFilter, developerFilter].forEach(el => el.addEventListener('input', applyFiltersAndSort));
+        [searchFilter, geaFilter, yearFilter, typeFilter, developerFilter, leaderboardSortEl].forEach(el => el.addEventListener('change', applyFiltersAndSort));
+        searchFilter.addEventListener('input', applyFiltersAndSort);
+
         gridFilter.addEventListener('change', () => { applyFiltersAndSort(); zoomToGrid(gridFilter.value); });
         exportBtn.addEventListener('click', exportToCsv);
         resetBtn.addEventListener('click', resetFilters);
+        
         tableHeaders.forEach(header => header.addEventListener('click', () => {
             const column = header.dataset.sort;
             sortState.direction = (sortState.column === column && sortState.direction === 'asc') ? 'desc' : 'asc';
             sortState.column = column;
             applyFiltersAndSort();
         }));
+        
         tableBody.addEventListener('click', (event) => {
             const row = event.target.closest('tr');
             if (row && row.dataset.projectId) {
                 const projectId = parseInt(row.dataset.projectId);
-                // Find project based on ID and current GEA filter to resolve duplicates
-                const selectedGea = geaFilter.value;
-                let projectToView = currentFilteredProjects.find(p => p.id === projectId);
-                if (selectedGea !== 'all') {
-                    projectToView = currentFilteredProjects.find(p => p.id === projectId && p.gea == selectedGea) || projectToView;
-                }
-                if (projectToView) showProjectModal(projectToView.id, projectToView.gea);
-
+                const projectGea = parseInt(row.dataset.projectGea);
+                showProjectModal(projectId, projectGea);
             }
         });
-        modalCloseBtn.addEventListener('click', hideProjectModal);
-        projectModal.addEventListener('click', (event) => { if (event.target === projectModal) hideProjectModal(); });
+        
+        developerLeaderboardEl.addEventListener('click', (event) => {
+            const devElement = event.target.closest('[data-developer]');
+            if (devElement) {
+                showDeveloperModal(devElement.dataset.developer);
+            }
+        });
+
+        compareBtn.addEventListener('click', () => {
+            const dev1 = compareDev1El.value;
+            const dev2 = compareDev2El.value;
+            if (dev1 && dev2 && dev1 !== dev2) {
+                showComparisonModal(dev1, dev2);
+            }
+        });
+
+        [modalCloseBtn, developerModalCloseBtn, comparisonModalCloseBtn].forEach(btn => btn.addEventListener('click', () => {
+            hideModal(projectModal, projectModalContent);
+            hideModal(developerModal, developerModalContent);
+            hideModal(comparisonModal, comparisonModalContent);
+        }));
+
+        [projectModal, developerModal, comparisonModal].forEach(modal => modal.addEventListener('click', (event) => {
+             if (event.target === modal) {
+                hideModal(modal, modal.querySelector('div[id$="-content"]'));
+             }
+        }));
+        
 
         // --- WIND TURBINE ANIMATION ---
         const turbineBlades = document.getElementById('turbine-blades');
@@ -759,8 +1054,4 @@
     </script>
 </body>
 </html>
-
-
-
-
 
