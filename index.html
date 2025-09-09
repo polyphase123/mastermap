@@ -180,23 +180,26 @@
                 <div class="h-96 w-full"><canvas id="timeline-chart"></canvas></div>
             </div>
 
-
-            <!-- Table Section -->
-            <div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"><thead class="bg-gray-50 dark:bg-gray-700"><tr><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="gea">GEA <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="year">Year <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="grid">Grid <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="type">Technology <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="facilityName">Project Name <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="developer">Developer <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="capacity">Capacity (MW) <span class="sort-arrow">↕️</span></th></tr></thead><tbody id="projects-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"></tbody></table><p id="no-results" class="text-center py-8 text-gray-500 dark:text-gray-400 hidden">No projects match the selected filters.</p></div>
-
             <!-- Comparison Section -->
-            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div class="mb-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Compare Developers</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-6xl mx-auto">
                     <select id="compare-dev-1" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
                         <option value="">Select Developer 1</option>
                     </select>
-                    <select id="compare-dev-2" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                     <select id="compare-dev-2" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
                         <option value="">Select Developer 2</option>
+                    </select>
+                    <select id="compare-dev-3" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                        <option value="">Select Developer 3</option>
                     </select>
                     <button id="compare-btn" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">Compare</button>
                 </div>
             </div>
+
+            <!-- Table Section -->
+            <div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"><thead class="bg-gray-50 dark:bg-gray-700"><tr><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="gea">GEA <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="year">Year <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="grid">Grid <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="type">Technology <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="facilityName">Project Name <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="developer">Developer <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="capacity">Capacity (MW) <span class="sort-arrow">↕️</span></th></tr></thead><tbody id="projects-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"></tbody></table><p id="no-results" class="text-center py-8 text-gray-500 dark:text-gray-400 hidden">No projects match the selected filters.</p></div>
+
         </div>
 
         <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400"><p>Data sourced from DOE public records.</p></footer>
@@ -231,7 +234,7 @@
                 <h2 id="comparison-modal-title" class="text-xl font-bold text-gray-800 dark:text-gray-100">Developer Comparison</h2>
                 <button id="comparison-modal-close-btn" class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-3xl">&times;</button>
             </div>
-            <div id="comparison-modal-body" class="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            <div id="comparison-modal-body" class="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </div>
     </div>
 
@@ -534,6 +537,7 @@
         const leaderboardSortEl = document.getElementById('leaderboard-sort');
         const compareDev1El = document.getElementById('compare-dev-1');
         const compareDev2El = document.getElementById('compare-dev-2');
+        const compareDev3El = document.getElementById('compare-dev-3');
         const compareBtn = document.getElementById('compare-btn');
 
         // Modals
@@ -679,10 +683,11 @@
             });
         }
         
-        function showComparisonModal(dev1Name, dev2Name) {
-            comparisonModalTitle.textContent = `Comparing ${dev1Name} vs. ${dev2Name}`;
+        function showComparisonModal(dev1Name, dev2Name, dev3Name) {
+            comparisonModalTitle.textContent = `Comparing Developers`;
             
             const createColumn = (devName) => {
+                if (!devName) return '';
                 const devProjects = projects.filter(p => p.developer === devName);
                 if (devProjects.length === 0) return `<div><h3 class="text-lg font-bold mb-4">${devName}</h3><p>No data found.</p></div>`;
                 
@@ -709,12 +714,13 @@
                 `;
             }
 
-            comparisonModalBody.innerHTML = createColumn(dev1Name) + createColumn(dev2Name);
+            comparisonModalBody.innerHTML = createColumn(dev1Name) + createColumn(dev2Name) + createColumn(dev3Name);
             comparisonModal.classList.remove('opacity-0', 'pointer-events-none');
             comparisonModalContent.classList.remove('scale-95');
 
             // Render charts
-            [dev1Name, dev2Name].forEach(devName => {
+            [dev1Name, dev2Name, dev3Name].forEach(devName => {
+                if (!devName) return;
                 const devProjects = projects.filter(p => p.developer === devName);
                 const dataByTech = devProjects.reduce((acc, p) => { acc[p.type] = (acc[p.type] || 0) + p.capacity; return acc; }, {});
                 const techLabels = Object.keys(dataByTech).sort();
@@ -768,10 +774,12 @@
             developerFilter.innerHTML = '<option value="all">All Developers</option>';
             compareDev1El.innerHTML = '<option value="">Select Developer 1</option>';
             compareDev2El.innerHTML = '<option value="">Select Developer 2</option>';
+            compareDev3El.innerHTML = '<option value="">Select Developer 3</option>';
             developers.forEach(dev => {
                 developerFilter.add(new Option(dev, dev));
                 compareDev1El.add(new Option(dev, dev));
                 compareDev2El.add(new Option(dev, dev));
+                compareDev3El.add(new Option(dev, dev));
             });
         }
 
@@ -1034,10 +1042,12 @@
         compareBtn.addEventListener('click', () => {
             const dev1 = compareDev1El.value;
             const dev2 = compareDev2El.value;
-            if (dev1 && dev2 && dev1 !== dev2) {
-                showComparisonModal(dev1, dev2);
+            const dev3 = compareDev3El.value;
+            if (dev1 && dev2 && dev3 && dev1 !== dev2 && dev1 !== dev3 && dev2 !== dev3) {
+                showComparisonModal(dev1, dev2, dev3);
             }
         });
+
 
         [modalCloseBtn, developerModalCloseBtn, comparisonModalCloseBtn].forEach(btn => btn.addEventListener('click', () => {
             hideModal(projectModal, projectModalContent);
@@ -1119,5 +1129,4 @@
     </script>
 </body>
 </html>
-
 
