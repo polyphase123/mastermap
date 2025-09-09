@@ -505,7 +505,7 @@
             { id: 104, gea: 4, year: 2029, grid: "Mindanao", type: "GROUND-MOUNTED SOLAR", facilityName: "Malita Solar Power Project; Phase 4", developer: "SMC Global Light and Power Corp.", capacity: 120.000, lat: 6.3935, lon: 125.6168 },
             { id: 105, gea: 4, year: 2029, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Angat Solar Power Project; Phase 2", developer: "SMC Global Light and Power Corp.", capacity: 500.000, lat: 14.912, lon: 121.053 },
             { id: 106, gea: 4, year: 2029, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Calabanga Wind Project", developer: "Envision Energy Philippines Corporation", capacity: 200.000, lat: 13.75, lon: 123.20 },
-            { id: 107, gea: 4, year: 2029, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Quezon Wind Power Project (Phase 1)", developer: "Atimonan Windkraft Corporation", capacity: 67.000, lat: 14.004, lon: 121.916 },
+            { id: 107, gea: 4, year: 22029, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Quezon Wind Power Project (Phase 1)", developer: "Atimonan Windkraft Corporation", capacity: 67.000, lat: 14.004, lon: 121.916 },
             { id: 108, gea: 4, year: 2029, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Ilosong Wind Power Project (Phase 1)", developer: "Ilosong Wind Corp.", capacity: 200.000, lat: 13.58, lon: 124.23 },
             { id: 109, gea: 4, year: 2029, grid: "Visayas", type: "ONSHORE WIND", facilityName: "Bais Wind Project", developer: "Envision Energy Philippines Corporation", capacity: 150.000, lat: 9.60, lon: 123.08 },
             { id: 110, gea: 4, year: 2029, grid: "Mindanao", type: "ONSHORE WIND", facilityName: "Caraga Wind Power Project Phase 1", developer: "Caraga Wind Energy Corporation", capacity: 101.000, lat: 9.82, lon: 125.50 },
@@ -571,12 +571,28 @@
             markerLayer = L.layerGroup().addTo(map);
         }
 
+        function getMarkerRadius(capacity) {
+            // Use a logarithmic scale to better visualize a wide range of capacities
+            const minRadius = 3; // Halved from 6
+            const maxRadius = 18; // Halved from 35
+            if (capacity <= 0) return minRadius;
+            let radius = minRadius + Math.log2(capacity + 1) * 1.25; // Multiplier halved
+            return Math.max(minRadius, Math.min(radius, maxRadius));
+        }
+
         function updateMap(projectList) {
             markerLayer.clearLayers();
             projectList.forEach(project => {
                 if (project.lat && project.lon) {
-                    const iconHtml = `<div style="background-color: ${iconColors[project.type] || '#888'};" class="w-4 h-4 rounded-full border-2 border-white shadow-md"></div>`;
-                    const customIcon = L.divIcon({ html: iconHtml, className: 'custom-map-icon', iconSize: [16, 16], iconAnchor: [8, 8] });
+                    const radius = getMarkerRadius(project.capacity);
+                    const diameter = radius * 2;
+                    const iconHtml = `<div style="background-color: ${iconColors[project.type] || '#888'}; width: ${diameter}px; height: ${diameter}px;" class="rounded-full border-2 border-white dark:border-gray-900 shadow-md opacity-80"></div>`;
+                    const customIcon = L.divIcon({ 
+                        html: iconHtml, 
+                        className: 'custom-map-icon', 
+                        iconSize: [diameter, diameter], 
+                        iconAnchor: [radius, radius] 
+                    });
                     const popupContent = `<div class="font-sans"><div class="font-bold text-base mb-1">${project.facilityName} (GEA-${project.gea})</div><div class="text-sm text-gray-600">${project.developer}</div><hr class="my-2"><div class="text-xs"><strong>Capacity:</strong> ${formatNumber(project.capacity, 3)} MW<br><strong>Technology:</strong> ${project.type}</div></div>`;
                     const marker = L.marker([project.lat, project.lon], { icon: customIcon }).bindPopup(popupContent);
                     markerLayer.addLayer(marker);
@@ -1054,4 +1070,5 @@
     </script>
 </body>
 </html>
+
 
