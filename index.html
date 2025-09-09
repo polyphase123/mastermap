@@ -199,14 +199,14 @@
             1: { total: 2000 }, // GEA-1 had a simple 2000 MW total target.
             2: { total: 11600, byYear: { 2024: 3600, 2025: 3600, 2026: 4400 }}, // GEA-2 targets from NOA
             3: { total: 4425, byTech: { "GEOTHERMAL": 100, "IMPOUNDING HYDROPOWER": 300, "PUMPED-STORAGE HYDROPOWER": 4250, "RUN-OF-RIVER": 75 }}, // GEA-3 from NOA, incl. supplement
-            4: { total: 9378 } // Simplified for now, can be broken down later if needed.
+            4: { total: 10478, byYear: { 2026: 2944, 2027: 2562, 2028: 3116, 2029: 1856 } } // GEA-4 Targets from Notice of Auction dated March 7, 2025
         };
 
         const projects = [
             // GEA-1 Winners (Awarded June 2022, delivery year estimated as 2024)
             { id: 1001, gea: 1, year: 2024, grid: "Luzon", type: "HYDRO", facilityName: "Kapangan Hydroelectric Power Project", developer: "Cordillera Hydroelectric Power Corporation", capacity: 60.000, lat: 16.5333, lon: 120.7833 },
             { id: 1002, gea: 1, year: 2024, grid: "Luzon", type: "HYDRO", facilityName: "Sablan 1 Hydroelectric Power Project", developer: "Hedcor, Inc.", capacity: 20.000, lat: 16.4500, lon: 120.5167 },
-            { id: 1003, gea: 1, year: 2024, grid: "Luzon", type: "SOLAR", facilityName: "PAVI Green Naga Solar Power Plant Project", developer: "PAVI Green Renewable Energy, Inc.", capacity: 40.400, lat: 13.6214, lon: 123.1842 },
+            { id: 1003, gea: 1, year: 2024, grid: "Luzon", type: "SOLAR", facilityName: "Naga Solar Power Plant Project", developer: "PAVI Green Renewable Energy, Inc.", capacity: 40.400, lat: 13.6214, lon: 123.1842 },
             { id: 1004, gea: 1, year: 2024, grid: "Luzon", type: "SOLAR", facilityName: "Talugtug Solar Power Project", developer: "Greenergy Solutions Inc.", capacity: 99.980, lat: 15.7556, lon: 120.8039 },
             { id: 1005, gea: 1, year: 2024, grid: "Luzon", type: "SOLAR", facilityName: "Concepcion Tarlac 2 Solar Power Project", developer: "Solar Philippines Commercial Rooftop Projects, Inc.", capacity: 200.000, lat: 15.326, lon: 120.658 },
             { id: 1006, gea: 1, year: 2024, grid: "Luzon", type: "SOLAR", facilityName: "Santa Rosa Nueva Ecija 2 Solar Power Project", developer: "Solar Philippines Nueva Ecija Corporation", capacity: 280.000, lat: 15.4833, lon: 120.9667 },
@@ -261,7 +261,7 @@
             { id: 2032, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "OMG Rice Mill #2 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.150, lat: 15.75, lon: 120.80 },
             { id: 2033, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. C6 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.200, lat: 14.73, lon: 120.95 },
             { id: 2034, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. F2 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.140, lat: 14.73, lon: 120.95 },
-            { id: 2035, gea: 2, year: 22025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Calamba Rollforming Plant Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.450, lat: 14.21, lon: 121.16 },
+            { id: 2035, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Calamba Rollforming Plant Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.450, lat: 14.21, lon: 121.16 },
             { id: 2036, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. C4 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.090, lat: 14.73, lon: 120.95 },
             { id: 2037, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "VCCR Global Enterprises Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.900, lat: 14.7, lon: 121.0 },
             { id: 2038, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. F3 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.150, lat: 14.73, lon: 120.95 },
@@ -759,5 +759,8 @@
     </script>
 </body>
 </html>
+
+
+
 
 
