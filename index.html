@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Energy Auction (GEA) Program Winners</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    
+    <!-- LeafletJS for the map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg-color: #ffffff;
+            --text-color: #1f2937;
+            --text-muted-color: #6b7280;
+            --border-color: #e5e7eb;
+        }
+        html.dark {
+            --bg-color: #111827;
+            --card-bg-color: #1f2937;
+            --text-color: #f9fafb;
+            --text-muted-color: #9ca3af;
+            --border-color: #374151;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        .dark ::-webkit-scrollbar-track { background: #2d3748; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .sort-arrow { display: inline-block; margin-left: 5px; opacity: 0.5; transition: opacity 0.2s; }
+        th:hover .sort-arrow { opacity: 1; }
+        .leaflet-container { z-index: 10; }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--card-bg-color); color: var(--text-color); }
+        .leaflet-popup-content { font-family: 'Inter', sans-serif; }
+        #projects-table-body tr { cursor: pointer; }
+        #project-modal { transition: opacity 0.3s ease-in-out; }
+        #project-modal-content { transition: transform 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <!-- Header Section -->
+        <header class="text-center mb-8 relative">
+            <div id="wind-turbine" class="mx-auto mb-4 w-24 h-36 cursor-pointer" title="Click me!">
+                <svg viewBox="0 0 100 150" class="w-full h-full">
+                    <path class="text-gray-200 dark:text-gray-700" d="M 47 150 L 47 55 C 47 52, 53 52, 53 55 L 53 150 Z" fill="currentColor"/>
+                    <circle class="text-gray-300 dark:text-gray-600" cx="50" cy="50" r="8" fill="currentColor"/><circle class="text-gray-200 dark:text-gray-700" cx="50" cy="50" r="7" fill="currentColor"/>
+                    <g id="turbine-blades" style="transform-origin: 50px 50px;">
+                        <g><path class="text-gray-200 dark:text-gray-700" d="M 50 50 C 48 48, 47 20, 50 2 L 50 2 C 53 20, 52 48, 50 50 Z" fill="currentColor" stroke="#9ca3af" stroke-width="0.5"/><path d="M 50 2 C 48 5, 48 8, 50 10 C 52 8, 52 5, 50 2 Z" fill="#ef4444"/></g>
+                        <g transform="rotate(120, 50, 50)"><path class="text-gray-200 dark:text-gray-700" d="M 50 50 C 48 48, 47 20, 50 2 L 50 2 C 53 20, 52 48, 50 50 Z" fill="currentColor" stroke="#9ca3af" stroke-width="0.5"/><path d="M 50 2 C 48 5, 48 8, 50 10 C 52 8, 52 5, 50 2 Z" fill="#ef4444"/></g>
+                        <g transform="rotate(240, 50, 50)"><path class="text-gray-200 dark:text-gray-700" d="M 50 50 C 48 48, 47 20, 50 2 L 50 2 C 53 20, 52 48, 50 50 Z" fill="currentColor" stroke="#9ca3af" stroke-width="0.5"/><path d="M 50 2 C 48 5, 48 8, 50 10 C 52 8, 52 5, 50 2 Z" fill="#ef4444"/></g>
+                    </g>
+                    <circle class="text-gray-100 dark:text-gray-800" cx="50" cy="50" r="4" fill="currentColor" stroke="#6b7280" stroke-width="1"/>
+                </svg>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50">Green Energy Auction (GEA) Program Winners</h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Data compiled from DOE public notices for GEA-1, GEA-2, GEA-3, and GEA-4.</p>
+            <div class="absolute top-0 right-0">
+                <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                </button>
+            </div>
+        </header>
+
+         <!-- Map Section -->
+        <div id="map" class="w-full h-96 md:h-[500px] mb-8 rounded-2xl shadow-lg border-2 border-white dark:border-gray-700"></div>
+        <p class="text-xs text-center text-gray-500 dark:text-gray-400 -mt-6 mb-8">Note: Project locations are approximate and based on publicly available information.</p>
+
+        <!-- Main Content Section -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+            <!-- Filters Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-6">
+                <!-- Filter controls here -->
+                <div>
+                    <label for="search-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Project/Dev</label>
+                    <input type="text" id="search-filter" placeholder="e.g., Citicore..." class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                </div>
+                <div>
+                    <label for="gea-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by GEA Round</label>
+                    <select id="gea-filter" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                        <option value="all">All GEA Rounds</option>
+                        <option value="1">GEA-1</option>
+                        <option value="2">GEA-2</option>
+                        <option value="3">GEA-3</option>
+                        <option value="4">GEA-4</option>
+                    </select>
+                </div>
+                 <div>
+                    <label for="grid-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by Grid</label>
+                    <select id="grid-filter" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                        <option value="all">All Grids</option>
+                        <option value="Luzon">Luzon</option>
+                        <option value="Visayas">Visayas</option>
+                        <option value="Mindanao">Mindanao</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="year-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by Year</label>
+                    <select id="year-filter" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                        <option value="all">All Years</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="type-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by Technology</label>
+                    <select id="type-filter" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                        <option value="all">All Technologies</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="developer-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by Developer</label>
+                    <select id="developer-filter" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-50 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                        <option value="all">All Developers</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-xl flex flex-col justify-center text-center"><div class="text-sm font-medium text-blue-800 dark:text-blue-200">Total Capacity (MW)</div><div id="total-capacity" class="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">0</div></div>
+                <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl flex flex-col justify-center text-center"><div class="text-sm font-medium text-gray-800 dark:text-gray-200">Projects Found</div><div id="project-count" class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">0</div></div>
+                <div class="lg:col-span-2 flex items-center justify-center gap-4">
+                     <button id="reset-filters" class="w-full h-full bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors">Reset</button>
+                    <button id="export-csv" class="w-full h-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">Export to CSV</button>
+                </div>
+            </div>
+            
+            <!-- New Charts and Leaderboard Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div class="lg:col-span-2">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 text-center">Capacity by GEA Round (MW)</h3>
+                    <canvas id="gea-round-chart"></canvas>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 text-center">Top 5 Developers</h3>
+                    <div id="developer-leaderboard" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 text-center">Technology Distribution</h3>
+                    <canvas id="tech-dist-chart"></canvas>
+                </div>
+                <div>
+                     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 text-center">Auction Subscription (Awarded vs Target)</h3>
+                    <canvas id="target-chart"></canvas>
+                </div>
+            </div>
+
+
+            <!-- Table Section -->
+            <div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"><thead class="bg-gray-50 dark:bg-gray-700"><tr><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="gea">GEA <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="year">Year <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="grid">Grid <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="type">Technology <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="facilityName">Project Name <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="developer">Developer <span class="sort-arrow">↕️</span></th><th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" data-sort="capacity">Capacity (MW) <span class="sort-arrow">↕️</span></th></tr></thead><tbody id="projects-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"></tbody></table><p id="no-results" class="text-center py-8 text-gray-500 dark:text-gray-400 hidden">No projects match the selected filters.</p></div>
+        </div>
+
+        <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400"><p>Programmed by Engr. Franz Xyrlo I. Tobias, PEE. Data sourced from DOE public records.</p></footer>
+    </div>
+
+    <!-- Project Detail Modal -->
+    <div id="project-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div id="project-modal-content" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-95">
+            <div class="sticky top-0 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h2 id="modal-title" class="text-xl font-bold text-gray-800 dark:text-gray-100">Project Details</h2>
+                <button id="modal-close-btn" class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-3xl">&times;</button>
+            </div>
+            <div id="modal-body" class="p-6"></div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- DATA ---
+        const iconColors = { 
+            "ROOF-MOUNTED SOLAR": "#F59E0B", "GROUND-MOUNTED SOLAR": "#FBBF24", "FLOATING SOLAR": "#3B82F6", 
+            "ONSHORE WIND": "#A78BFA", "IRESS": "#10B981", "HYDRO": "#22D3EE", "WIND": "#67E8F9", 
+            "SOLAR": "#FACC15", "BIOMASS": "#84CC16", "IMPOUNDING HYDROPOWER": "#0EA5E9", 
+            "PUMPED-STORAGE HYDROPOWER": "#38BDF8", "GEOTHERMAL": "#F43F5E", "WASTE-TO-ENERGY": "#475569"
+        };
+        
+        const geaTargets = {
+            1: { total: 2000 }, // GEA-1 had a simple 2000 MW total target.
+            2: { total: 11600, byYear: { 2024: 3600, 2025: 3600, 2026: 4400 }}, // GEA-2 targets from NOA
+            3: { total: 4425, byTech: { "GEOTHERMAL": 100, "IMPOUNDING HYDROPOWER": 300, "PUMPED-STORAGE HYDROPOWER": 4250, "RUN-OF-RIVER": 75 }}, // GEA-3 from NOA, incl. supplement
+            4: { total: 9378 } // Simplified for now, can be broken down later if needed.
+        };
+
+        const projects = [
+            // GEA-1 Winners (Awarded June 2022, delivery year estimated as 2024)
+            { id: 1001, gea: 1, year: 2024, grid: "Luzon", type: "HYDRO", facilityName: "Kapangan Hydroelectric Power Project", developer: "Cordillera Hydroelectric Power Corporation", capacity: 60.000, lat: 16.5333, lon: 120.7833 },
+            { id: 1002, gea: 1, year: 2024, grid: "Luzon", type: "HYDRO", facilityName: "Sablan 1 Hydroelectric Power Project", developer: "Hedcor, Inc.", capacity: 20.000, lat: 16.4500, lon: 120.5167 },
+            { id: 1003, gea: 1, year: 2024, grid: "Luzon", type: "SOLAR", facilityName: "PAVI Green Naga Solar Power Plant Project", developer: "PAVI Green Renewable Energy, Inc.", capacity: 40.400, lat: 13.6214, lon: 123.1842 },
+            { id: 1004, gea: 1, year: 2024, grid: "Luzon", type: "SOLAR", facilityName: "Talugtug Solar Power Project", developer: "Greenergy Solutions Inc.", capacity: 99.980, lat: 15.7556, lon: 120.8039 },
+            { id: 1005, gea: 1, year: 2024, grid: "Luzon", type: "SOLAR", facilityName: "Concepcion Tarlac 2 Solar Power Project", developer: "Solar Philippines Commercial Rooftop Projects, Inc.", capacity: 200.000, lat: 15.326, lon: 120.658 },
+            { id: 1006, gea: 1, year: 2024, grid: "Luzon", type: "SOLAR", facilityName: "Santa Rosa Nueva Ecija 2 Solar Power Project", developer: "Solar Philippines Nueva Ecija Corporation", capacity: 280.000, lat: 15.4833, lon: 120.9667 },
+            { id: 1007, gea: 1, year: 2024, grid: "Luzon", type: "SOLAR", facilityName: "Tayabas Solar Power Project", developer: "Solar Philippines Commercial Rooftop Projects, Inc.", capacity: 450.000, lat: 14.024, lon: 121.593 },
+            { id: 1008, gea: 1, year: 2024, grid: "Luzon", type: "WIND", facilityName: "Caparispisan II Wind Power Project", developer: "Amihan Renewable Energy Corp.", capacity: 70.000, lat: 18.5722, lon: 120.7675 },
+            { id: 1009, gea: 1, year: 2024, grid: "Luzon", type: "WIND", facilityName: "Calatagan Wind Power Project", developer: "Solar Philippines Calatagan Corporation", capacity: 30.000, lat: 13.8294, lon: 120.6358 },
+            { id: 1010, gea: 1, year: 2024, grid: "Luzon", type: "WIND", facilityName: "Balaoi and Caunayan Wind Power Project", developer: "Bayog Wind Power Corp.", capacity: 160.000, lat: 18.6333, lon: 120.7500 },
+            { id: 1011, gea: 1, year: 2024, grid: "Luzon", type: "WIND", facilityName: "Kalayaan 2 Wind Power Project", developer: "CleanTech Global Renewables, Inc.", capacity: 100.800, lat: 14.40, lon: 121.55 },
+            { id: 1012, gea: 1, year: 2024, grid: "Visayas", type: "SOLAR", facilityName: "Kananga-Ormoc Solar Power Project", developer: "Solar Philippines Visayas Corporation", capacity: 300.000, lat: 11.1667, lon: 124.5667 },
+            { id: 1013, gea: 1, year: 2024, grid: "Visayas", type: "WIND", facilityName: "Nabas 2 Wind Power Project", developer: "Petrowind Energy, Inc.", capacity: 13.200, lat: 11.8833, lon: 121.9500 },
+            { id: 1014, gea: 1, year: 2024, grid: "Mindanao", type: "HYDRO", facilityName: "Malitbog Hydroelectric Power Project", developer: "Philnewriver Power Corporation", capacity: 3.700, lat: 8.0833, lon: 124.7833 },
+            { id: 1015, gea: 1, year: 2024, grid: "Mindanao", type: "HYDRO", facilityName: "Silo-O Hydroelectric Power Project", developer: "Philnewriver Power Corporation", capacity: 3.700, lat: 8.6167, lon: 124.7833 },
+            { id: 1016, gea: 1, year: 2024, grid: "Mindanao", type: "HYDRO", facilityName: "Mat-l 1 Hydroelectric Power Project", developer: "Philnew Hydro Power Corporation", capacity: 4.850, lat: 8.1333, lon: 124.8167 },
+            { id: 1017, gea: 1, year: 2024, grid: "Mindanao", type: "HYDRO", facilityName: "Clarin Hydroelectric Power Project", developer: "Philnew Hydro Power Corporation", capacity: 6.900, lat: 8.2167, lon: 123.8500 },
+            { id: 1018, gea: 1, year: 2024, grid: "Mindanao", type: "BIOMASS", facilityName: "10MW -Biomass Cogeneration Plant", developer: "Cotabato Sugar Central Company, Inc.", capacity: 3.400, lat: 7.0167, lon: 124.4833 },
+            { id: 1019, gea: 1, year: 2024, grid: "Mindanao", type: "SOLAR", facilityName: "General Santos Solar Power Project", developer: "Solar Philippines Commercial Rooftop Projects, Inc.", capacity: 120.000, lat: 6.1167, lon: 125.1667 },
+            
+            // GEA-2 Winners (Full list from Notice of Award dated July 12, 2023)
+            // 2024 Installation Target
+            { id: 2001, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bongabon Solar Power Project", developer: "Nuevasol Energy Corp.", capacity: 30.933, lat: 15.63, lon: 121.15 },
+            { id: 2002, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Gamu Solar Power Project", developer: "Megasol Energy I Inc.", capacity: 41.244, lat: 17.06, lon: 121.84 },
+            { id: 2003, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Dalayap Solar Power Project", developer: "Citicore Solar Tarlac 2, Inc.", capacity: 5.880, lat: 15.36, lon: 120.62 },
+            { id: 2004, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Armenia Solar Power Project", developer: "Citicore Solar Tarlac 1, Inc.", capacity: 7.100, lat: 15.48, lon: 120.60 },
+            { id: 2005, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Tuy 4 Batangas Solar Power Project", developer: "Greencore Power Solution 2, Inc.", capacity: 50.000, lat: 14.02, lon: 120.73 },
+            { id: 2006, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bolbok 2 Solar Power Project", developer: "Greencore Power Solution 2, Inc.", capacity: 75.000, lat: 13.78, lon: 121.07 },
+            { id: 2007, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Arayat 3A Solar Power Project", developer: "Citicore Solar Pampanga 1, Inc.", capacity: 30.000, lat: 15.15, lon: 120.77 },
+            { id: 2008, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Pagbilao 1 Solar Power Project", developer: "Citicore Solar Quezon, Inc.", capacity: 70.500, lat: 13.97, lon: 121.75 },
+            { id: 2009, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Pagbilao 2 Solar Power Project", developer: "Citicore Solar Quezon, Inc.", capacity: 27.000, lat: 13.97, lon: 121.75 },
+            { id: 2010, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Sta. Barbara 1 Solar Power Project", developer: "Citicore Solar Pangasinan, Inc.", capacity: 90.000, lat: 15.99, lon: 120.40 },
+            { id: 2011, gea: 2, year: 2024, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "San Manuel 1 Solar Power Project", developer: "Citicore Solar Pangasinan 2, Inc.", capacity: 80.100, lat: 16.05, lon: 120.69 },
+            { id: 2012, gea: 2, year: 2024, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. B4 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.180, lat: 14.73, lon: 120.95 },
+            { id: 2013, gea: 2, year: 2024, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #3 C TEKNIK Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.130, lat: 14.73, lon: 120.95 },
+            { id: 2014, gea: 2, year: 2024, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #5 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.130, lat: 14.73, lon: 120.95 },
+            { id: 2015, gea: 2, year: 2024, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #4 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.130, lat: 14.73, lon: 120.95 },
+            { id: 2016, gea: 2, year: 2024, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #6 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.130, lat: 14.73, lon: 120.95 },
+            { id: 2017, gea: 2, year: 2024, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #1 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.060, lat: 14.73, lon: 120.95 },
+            { id: 2018, gea: 2, year: 2024, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #18 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.150, lat: 14.73, lon: 120.95 },
+            { id: 2019, gea: 2, year: 2024, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #19 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.150, lat: 14.73, lon: 120.95 },
+            { id: 2020, gea: 2, year: 2024, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #2 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.090, lat: 14.73, lon: 120.95 },
+            // 2025 Installation Target
+            { id: 2021, gea: 2, year: 2025, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Labrador Solar Power Plant Project", developer: "Labrador Green Energy Corp.", capacity: 200.000, lat: 16.03, lon: 120.14 },
+            { id: 2022, gea: 2, year: 2025, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Apulid Solar Project", developer: "Liberty Solar Energy Corporation", capacity: 49.900, lat: 15.67, lon: 120.58 },
+            { id: 2023, gea: 2, year: 2025, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Development of 50MW Ground Mounted Solar Power Plant", developer: "Wyn Power Corporation", capacity: 50.000, lat: 15.5, lon: 120.8 },
+            { id: 2024, gea: 2, year: 2025, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "San Pablo Solar Power Project Phase 1", developer: "Solar Valley Energy Solutions Inc", capacity: 49.400, lat: 17.08, lon: 121.80 },
+            { id: 2025, gea: 2, year: 2025, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Cordon Solar Power Project", developer: "Greenergy For Global, Inc. Doing Business Under G4G", capacity: 49.000, lat: 16.70, lon: 121.48 },
+            { id: 2026, gea: 2, year: 2025, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bongabon Solar Power Project", developer: "Greentech Solar Energy Inc.", capacity: 18.750, lat: 15.63, lon: 121.15 },
+            { id: 2027, gea: 2, year: 2025, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "San Pablo 1 Solar Power Project", developer: "San Pablo Renewable Energy Corporation", capacity: 43.750, lat: 17.08, lon: 121.80 },
+            { id: 2028, gea: 2, year: 2025, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Limbauan Solar Power Project", developer: "BKS Green Energy Corp.", capacity: 28.000, lat: 17.09, lon: 121.78 },
+            { id: 2029, gea: 2, year: 2025, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bugallon Solar Power Project", developer: "PetroGreen Energy Corporation", capacity: 18.560, lat: 15.93, lon: 120.21 },
+            { id: 2030, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Pampanga Rollforming Plant Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.180, lat: 15.08, lon: 120.70 },
+            { id: 2031, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #20 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.130, lat: 14.73, lon: 120.95 },
+            { id: 2032, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "OMG Rice Mill #2 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.150, lat: 15.75, lon: 120.80 },
+            { id: 2033, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. C6 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.200, lat: 14.73, lon: 120.95 },
+            { id: 2034, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. F2 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.140, lat: 14.73, lon: 120.95 },
+            { id: 2035, gea: 2, year: 22025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Calamba Rollforming Plant Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.450, lat: 14.21, lon: 121.16 },
+            { id: 2036, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. C4 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.090, lat: 14.73, lon: 120.95 },
+            { id: 2037, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "VCCR Global Enterprises Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.900, lat: 14.7, lon: 121.0 },
+            { id: 2038, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. F3 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.150, lat: 14.73, lon: 120.95 },
+            { id: 2039, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "3 Angels And 2 Princess Rice Mill Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.280, lat: 15.75, lon: 120.80 },
+            { id: 2040, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. C7 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.200, lat: 14.73, lon: 120.95 },
+            { id: 2041, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Batangas Rollforming Plant Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.090, lat: 13.75, lon: 121.05 },
+            { id: 2042, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. C2 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.180, lat: 14.73, lon: 120.95 },
+            { id: 2043, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "RKR Rice Mill #1 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.090, lat: 15.75, lon: 120.80 },
+            { id: 2044, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. F4 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.130, lat: 14.73, lon: 120.95 },
+            { id: 2045, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. C8 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.180, lat: 14.73, lon: 120.95 },
+            { id: 2046, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "RKR Rice Mill #2 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.090, lat: 15.75, lon: 120.80 },
+            { id: 2047, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "RKR Rice Mill #3 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.100, lat: 15.75, lon: 120.80 },
+            { id: 2048, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. C3 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.100, lat: 14.73, lon: 120.95 },
+            { id: 2049, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Sunmade Agri 1 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.280, lat: 15.75, lon: 120.80 },
+            { id: 2050, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. E2 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.230, lat: 14.73, lon: 120.95 },
+            { id: 2051, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. C5 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.200, lat: 14.73, lon: 120.95 },
+            { id: 2052, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "OMG Rice Mill #3 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.140, lat: 15.75, lon: 120.80 },
+            { id: 2053, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. 2 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.180, lat: 14.73, lon: 120.95 },
+            { id: 2054, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "OMG Rice Mill #1 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.060, lat: 15.75, lon: 120.80 },
+            { id: 2055, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. E3 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.200, lat: 14.73, lon: 120.95 },
+            { id: 2056, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "La Union Rollforming Plant Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.200, lat: 16.61, lon: 120.32 },
+            { id: 2057, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. E4 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.230, lat: 14.73, lon: 120.95 },
+            { id: 2058, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Sunmade Agri 5 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.150, lat: 15.75, lon: 120.80 },
+            { id: 2059, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. 3 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.180, lat: 14.73, lon: 120.95 },
+            { id: 2060, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. E5 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.240, lat: 14.73, lon: 120.95 },
+            { id: 2061, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Sunmade Agri 4 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.080, lat: 15.75, lon: 120.80 },
+            { id: 2062, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. F1 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.130, lat: 14.73, lon: 120.95 },
+            { id: 2063, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Sunmade Agri 2 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.168, lat: 15.75, lon: 120.80 },
+            { id: 2064, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Sunmade Agri 3 Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.042, lat: 15.75, lon: 120.80 },
+            { id: 2065, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. 4 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.100, lat: 14.73, lon: 120.95 },
+            { id: 2066, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. B7 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.100, lat: 14.73, lon: 120.95 },
+            { id: 2067, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. 1 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.140, lat: 14.73, lon: 120.95 },
+            { id: 2068, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse No. B8 Geomax Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.050, lat: 14.73, lon: 120.95 },
+            { id: 2069, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #23 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.130, lat: 14.73, lon: 120.95 },
+            { id: 2070, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #22 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.120, lat: 14.73, lon: 120.95 },
+            { id: 2071, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #27 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.230, lat: 14.73, lon: 120.95 },
+            { id: 2072, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #26 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.140, lat: 14.73, lon: 120.95 },
+            { id: 2073, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #25 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.120, lat: 14.73, lon: 120.95 },
+            { id: 2074, gea: 2, year: 2025, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Warehouse #24 C Teknik Compound Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.140, lat: 14.73, lon: 120.95 },
+            { id: 2075, gea: 2, year: 2025, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Alabat Wind Power Project", developer: "Alternergy Tanay Wind Corporation", capacity: 54.600, lat: 14.1, lon: 122.06 },
+            { id: 2076, gea: 2, year: 2025, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Tanay Wind Power Project", developer: "Alternergy Tanay Wind Corporation", capacity: 85.800, lat: 14.6, lon: 121.38 },
+            { id: 2077, gea: 2, year: 2025, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Rizal Wind Power Project", developer: "Rizal Wind Energy Corp.", capacity: 90.000, lat: 14.6, lon: 121.3 },
+            { id: 2078, gea: 2, year: 2025, grid: "Visayas", type: "ROOF-MOUNTED SOLAR", facilityName: "Bacolod Rollforming Plant Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.120, lat: 10.67, lon: 122.95 },
+            { id: 2079, gea: 2, year: 2025, grid: "Visayas", type: "ROOF-MOUNTED SOLAR", facilityName: "Cebu Rollforming Plant Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.130, lat: 10.31, lon: 123.90 },
+            { id: 2080, gea: 2, year: 2025, grid: "Mindanao", type: "GROUND-MOUNTED SOLAR", facilityName: "Butuan City 1 Solar Power Project", developer: "Enfinity Philippine Renewable Resources Third Inc.", capacity: 8.000, lat: 8.95, lon: 125.53 },
+            { id: 2081, gea: 2, year: 2025, grid: "Mindanao", type: "ROOF-MOUNTED SOLAR", facilityName: "Cagayan De Oro Rollforming Plant Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.110, lat: 8.48, lon: 124.64 },
+            { id: 2082, gea: 2, year: 2025, grid: "Mindanao", type: "ROOF-MOUNTED SOLAR", facilityName: "Butuan Rollforming Plant Solar PV System", developer: "Phinma Solar Energy Corporation", capacity: 0.070, lat: 8.95, lon: 125.53 },
+            // 2026 Installation Target
+            { id: 2083, gea: 2, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Opus Solar Power Project", developer: "Opus Solar Energy Corp.", capacity: 149.950, lat: 16.93, lon: 121.77 },
+            { id: 2084, gea: 2, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Ixus Bugallon Solar Power Project", developer: "Ixus Solar Energy Corp", capacity: 274.735, lat: 15.93, lon: 120.21 },
+            { id: 2085, gea: 2, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "San Pablo Solar Power Project Phase 2", developer: "Solar Valley Energy Solutions Inc", capacity: 79.040, lat: 17.08, lon: 121.80 },
+            { id: 2086, gea: 2, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Santa Rosa Nueva Ecija 3 Solar Power Project", developer: "Solar Philippines Commercial Rooftop Projects, Inc.", capacity: 20.000, lat: 15.48, lon: 120.96 },
+            { id: 2087, gea: 2, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Pasuquin-Burgos 100MW Solar Power Plant", developer: "Energy Logics Philippines Inc.", capacity: 49.000, lat: 18.43, lon: 120.63 },
+            { id: 2088, gea: 2, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Linglingay Solar Power Project", developer: "Xyris Energy Corporation", capacity: 70.140, lat: 16.69, lon: 121.49 },
+            { id: 2089, gea: 2, year: 2026, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "NKS One Floating Solar Power Project", developer: "NKS Solar One Inc.", capacity: 90.000, lat: 14.24, lon: 121.18 },
+            { id: 2090, gea: 2, year: 2026, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Quezon Wind Power Project", developer: "Quezon Wind Energy Corp.", capacity: 239.985, lat: 14.75, lon: 121.58 },
+            { id: 2091, gea: 2, year: 2026, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Camarines Sur Wind Power Project", developer: "Cornerstone Energy Development, Inc.", capacity: 49.999, lat: 13.62, lon: 123.18 },
+            { id: 2092, gea: 2, year: 2026, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Pangasinan CW 2 Wind Power Project", developer: "Citicore Wind Energy Corporation", capacity: 80.000, lat: 15.9, lon: 120.2 },
+            { id: 2093, gea: 2, year: 2026, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Bataan-Zambales CW Wind Power Project", developer: "Citicore Wind Energy Corporation", capacity: 100.000, lat: 14.9, lon: 120.3 },
+            { id: 2094, gea: 2, year: 2026, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Isla Wind Power Project", developer: "Giga Ace 6, Inc.", capacity: 230.000, lat: 14.5, lon: 121.0 },
+            { id: 2095, gea: 2, year: 2026, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Camarines Sur CW Wind Power Project", developer: "Citicore Wind Energy Corporation", capacity: 30.000, lat: 13.62, lon: 123.18 },
+            { id: 2096, gea: 2, year: 2026, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Ajuy 1 Solar Power Plant Project", developer: "Joy-Nostalg Solaris Incorporated", capacity: 14.000, lat: 11.17, lon: 123.02 },
+            { id: 2097, gea: 2, year: 2026, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Luca Solar Power Project", developer: "Apolaki Eight Inc.", capacity: 40.000, lat: 10.38, lon: 123.64 },
+            { id: 2098, gea: 2, year: 2026, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Silay 2b Solar Power Project", developer: "Citicore Solar Negros Occidental 2, Inc.", capacity: 20.000, lat: 10.80, lon: 122.97 },
+            { id: 2099, gea: 2, year: 2026, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Toledo Solar Power Project", developer: "Citicore Solar Cebu, Inc.", capacity: 49.000, lat: 10.38, lon: 123.64 },
+            { id: 2100, gea: 2, year: 2026, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Silay 2a Solar Power Project", developer: "Citicore Solar Negros Occidental 2, Inc.", capacity: 30.000, lat: 10.80, lon: 122.97 },
+            { id: 2101, gea: 2, year: 2026, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Silay Solar Power Project", developer: "Citicore Solar Negros Occidental, Inc.", capacity: 20.000, lat: 10.80, lon: 122.97 },
+            { id: 2102, gea: 2, year: 2026, grid: "Visayas", type: "ONSHORE WIND", facilityName: "Iloilo CW 1 Wind Power Project", developer: "Citicore Wind Energy Corporation", capacity: 152.000, lat: 11.1, lon: 123.0 },
+            { id: 2103, gea: 2, year: 2026, grid: "Visayas", type: "ONSHORE WIND", facilityName: "Gemini Wind Power Project", developer: "Gemini Wind Energy Corp.", capacity: 200.000, lat: 10.5, lon: 123.0 },
+            { id: 2104, gea: 2, year: 2026, grid: "Visayas", type: "ONSHORE WIND", facilityName: "Bago City Wind Power Project", developer: "FirstMaxpower International Corporation", capacity: 150.000, lat: 10.53, lon: 122.84 },
+            { id: 2105, gea: 2, year: 2026, grid: "Mindanao", type: "GROUND-MOUNTED SOLAR", facilityName: "Tantangan Solar Power Project", developer: "Apolaki Seven Inc.", capacity: 40.000, lat: 6.67, lon: 124.67 },
+
+            // GEA-3 Winners (Awarded June 2025)
+            { id: 3001, gea: 3, year: 2028, grid: "Luzon", type: "IMPOUNDING HYDROPOWER", facilityName: "Gened 1 Hydroelectric Power Project", developer: "Pan Pacific Renewable Power Phils. Corp.", capacity: 150.000, lat: 17.91, lon: 121.28 },
+            { id: 3002, gea: 3, year: 2029, grid: "Luzon", type: "IMPOUNDING HYDROPOWER", facilityName: "Gened 2 Hydroelectric Power Project", developer: "Pan Pacific Renewable Power Phils. Corp.", capacity: 150.000, lat: 17.95, lon: 121.25 },
+            { id: 3003, gea: 3, year: 2028, grid: "Luzon", type: "PUMPED-STORAGE HYDROPOWER", facilityName: "Kibungan Pumped Storage Hydroelectric Power Project", developer: "Coheco Badeo Corporation", capacity: 500.000, lat: 16.65, lon: 120.73 },
+            { id: 3004, gea: 3, year: 2029, grid: "Luzon", type: "PUMPED-STORAGE HYDROPOWER", facilityName: "Wawa Pumped Storage 1 Hydroelectric Power", developer: "Olympia Violago Water and Power, Inc.", capacity: 600.000, lat: 14.69, lon: 121.18 },
+            { id: 3005, gea: 3, year: 2030, grid: "Luzon", type: "PUMPED-STORAGE HYDROPOWER", facilityName: "Pakil Pumped Storage Hydroelectric Power Project", developer: "Ahunan Power, Inc.", capacity: 1400.000, lat: 14.40, lon: 121.48 },
+            { id: 3006, gea: 3, year: 2031, grid: "Luzon", type: "PUMPED-STORAGE HYDROPOWER", facilityName: "San Roque Lower East Pumped Storage Hydroelectric Power Project", developer: "San Roque Hydropower Inc.", capacity: 800.000, lat: 16.08, lon: 120.68 },
+            { id: 3007, gea: 3, year: 2032, grid: "Luzon", type: "PUMPED-STORAGE HYDROPOWER", facilityName: "San Roque West Pumped Storage Hydroelectric Power Project", developer: "San Roque Hydropower Inc.", capacity: 800.000, lat: 16.09, lon: 120.67 },
+            { id: 3008, gea: 3, year: 2032, grid: "Luzon", type: "PUMPED-STORAGE HYDROPOWER", facilityName: "Maton Pumped Storage Hydroelectric Power Project", developer: "Pan Pacific Renewable Power Phils. Corp.", capacity: 2000.000, lat: 17.80, lon: 121.20 },
+            { id: 3009, gea: 3, year: 2031, grid: "Visayas", type: "PUMPED-STORAGE HYDROPOWER", facilityName: "Aklan Pumped Storage Hydroelectric Power Project", developer: "San Roque Hydropower Inc.", capacity: 250.000, lat: 11.60, lon: 122.25 },
+            { id: 3010, gea: 3, year: 2025, grid: "Mindanao", type: "GEOTHERMAL", facilityName: "Mindanao 3 Binary Geothermal Power Plant Expansion Project Phase 3 - Unit 1", developer: "Energy Development Corporation", capacity: 3.669, lat: 7.18, lon: 125.10 },
+            { id: 3011, gea: 3, year: 2026, grid: "Luzon", type: "GEOTHERMAL", facilityName: "Tanawon Geothermal Power Plant - Unit 1", developer: "Bac-Man Geothermal Inc.", capacity: 21.573, lat: 13.04, lon: 123.91 },
+            { id: 3012, gea: 3, year: 2027, grid: "Visayas", type: "GEOTHERMAL", facilityName: "Bago Binary Geothermal Power Plant Unit 1", developer: "Energy Development Corporation", capacity: 5.645, lat: 10.55, lon: 123.01 },
+
+            // GEA-4 Winners (Full List Restored)
+            { id: 1, gea: 4, year: 2026, grid: "Luzon", type: "IRESS", facilityName: "Bolbok 3 Solar Power Project; Phase 1", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 13.9687, lon: 120.7276 },
+            { id: 2, gea: 4, year: 2026, grid: "Visayas", type: "IRESS", facilityName: "Silay 2D Solar Power Project; Phase 1", developer: "Citicore Renewable Energy Corporation", capacity: 35.710, lat: 10.7442, lon: 123.0739 },
+            { id: 3, gea: 4, year: 2026, grid: "Mindanao", type: "IRESS", facilityName: "Tantangan Solar Power Project; Phase 2", developer: "Apolaki Seven Inc.", capacity: 13.380, lat: 6.5717, lon: 124.7641 },
+            { id: 4, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Castilla Solar Power Plant", developer: "Equator Energy Corporation", capacity: 39.984, lat: 12.964, lon: 123.871 },
+            { id: 5, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Ecopark Isla Solar Power Plant", developer: "Ecopark Energy of Valenzuela Corp.", capacity: 4.035, lat: 14.73, lon: 120.98 },
+            { id: 6, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Ecopark Tagalag Solar Power Plant", developer: "Ecopark Energy of Valenzuela Corp.", capacity: 14.700, lat: 14.75, lon: 120.97 },
+            { id: 7, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Pagbilao 3 Solar Power Project; Phase 1", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 13.972, lon: 121.753 },
+            { id: 8, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Pagbilao 3 Solar Power Project; Phase 2", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 13.972, lon: 121.753 },
+            { id: 9, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "San Lorenzo Ruiz Solar Power Plant", developer: "East Cornerstone Development Corp.", capacity: 5.000, lat: 14.125, lon: 122.842 },
+            { id: 10, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Capantolan Solar Power Project", developer: "Pacific Impact Energy Corp.", capacity: 42.000, lat: 16.071, lon: 120.095 },
+            { id: 11, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Magahis Solar Power Plant Project; Phase I", developer: "Tuy Solar Power Corporation", capacity: 170.000, lat: 14.024, lon: 120.731 },
+            { id: 12, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bolbok 4 Solar Power Project; Phase 1", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 13.9687, lon: 120.7276 },
+            { id: 13, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Luntal Solar Power Project", developer: "Citicore Solar Batangas 1, Inc.", capacity: 50.000, lat: 13.9687, lon: 120.7276 },
+            { id: 14, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bolbok 5 Solar Power Project; Phase 2", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 13.9687, lon: 120.7276 },
+            { id: 15, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Lumbangan Solar Power Project", developer: "Citicore Solar Batangas 1, Inc.", capacity: 90.000, lat: 13.8121, lon: 121.2626 },
+            { id: 16, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bolbok 5 Solar Power Project; Phase1", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 13.9687, lon: 120.7276 },
+            { id: 17, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bolbok 5 Solar Power Project; Phase 3", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 13.9687, lon: 120.7276 },
+            { id: 18, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bolbok 4 Solar Power Project; Phase 2", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 13.9687, lon: 120.7276 },
+            { id: 19, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bolbok 4 Solar Power Project Phase 3", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 13.9687, lon: 120.7276 },
+            { id: 20, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Bataan Solar Power Project", developer: "Tai Yang 1 Power Inc.", capacity: 16.500, lat: 14.8302, lon: 120.5086 },
+            { id: 21, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Sual Solar Power Plant", developer: "Renovable Earth Corp.", capacity: 33.000, lat: 16.071, lon: 120.095 },
+            { id: 22, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Sapang Balen Solar 2 Power Project", developer: "Sapang Balen Solar Sustainable Energy Corp.", capacity: 90.000, lat: 15.2310, lon: 120.5447 },
+            { id: 23, gea: 4, year: 2026, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Isabela Ground Mounted Solar PV Project; Phase 1", developer: "San Ignacio Energy Resources Development Corporation", capacity: 96.473, lat: 17.1311, lon: 121.8845 },
+            { id: 24, gea: 4, year: 2026, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Sikatuna Solar Power Project", developer: "Bohol Solar Energy Inc.", capacity: 37.884, lat: 9.6824, lon: 123.9870 },
+            { id: 25, gea: 4, year: 2026, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Vista Alegre Solar Power Project", developer: "Amatera Renewable Energy Corporation", capacity: 50.100, lat: 10.7770, lon: 123.0149 },
+            { id: 26, gea: 4, year: 2026, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Daanbantayan Solar Power Project", developer: "Freya Renewables Inc.", capacity: 150.000, lat: 11.261, lon: 124.025 },
+            { id: 27, gea: 4, year: 2026, grid: "Mindanao", type: "GROUND-MOUNTED SOLAR", facilityName: "Pagayawan Solar Power Plant Project", developer: "Pagayawan Renewable Energy Corp.", capacity: 20.000, lat: 7.824, lon: 124.402 },
+            { id: 28, gea: 4, year: 2026, grid: "Mindanao", type: "GROUND-MOUNTED SOLAR", facilityName: "Malita Solar Power Project; Phase 1", developer: "SMC Global Light and Power Corp.", capacity: 108.000, lat: 6.3935, lon: 125.6168 },
+            { id: 29, gea: 4, year: 2026, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Naic Solar Rooftop Power Project", developer: "Joy-Nostalg Solaris Incorporated", capacity: 4.950, lat: 14.321, lon: 120.765 },
+            { id: 30, gea: 4, year: 2026, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Ning Ning Muzon-Labac Rooftop Solar Power Project", developer: "Joy-Nostalg Solaris Incorporated", capacity: 10.497, lat: 13.784, lon: 121.052 },
+            { id: 31, gea: 4, year: 2026, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Kalayaan 2 Wind Power Project", developer: "Laguna Wind Energy Corp.", capacity: 100.800, lat: 14.40, lon: 121.55 },
+            { id: 32, gea: 4, year: 2026, grid: "Luzon", type: "ONSHORE WIND", facilityName: "South Eastern Wind Power Project", developer: "Econergy Renewable Power Philippines Inc.", capacity: 49.990, lat: 12.91, lon: 124.12 },
+            { id: 33, gea: 4, year: 2027, grid: "Luzon", type: "IRESS", facilityName: "Bolbok 3 Solar Power Project Phase 2", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 13.9687, lon: 120.7276 },
+            { id: 34, gea: 4, year: 2027, grid: "Visayas", type: "IRESS", facilityName: "Barotac Viejo Solar Power Project", developer: "Magallanes Solar Energy Corp.", capacity: 67.000, lat: 11.052, lon: 122.953 },
+            { id: 35, gea: 4, year: 2027, grid: "Visayas", type: "IRESS", facilityName: "Silay 2C Solar Power Project; Phase 1", developer: "Citicore Renewable Energy Corporation", capacity: 38.000, lat: 10.7442, lon: 123.0739 },
+            { id: 36, gea: 4, year: 2027, grid: "Luzon", type: "IRESS", facilityName: "Titan V Solar Power Project; Phase 1", developer: "Apolaki Four Inc.", capacity: 49.700, lat: 8.55, lon: 126.38 },
+            { id: 37, gea: 4, year: 2027, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Atimonan Solar Power Project", developer: "Bolo Renewable Energy Corp.", capacity: 50.000, lat: 14.004, lon: 121.916 },
+            { id: 38, gea: 4, year: 2027, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Ultra Solar Power Plant Project", developer: "Bolo Renewable Energy Corp.", capacity: 68.000, lat: 14.012, lon: 121.905 },
+            { id: 39, gea: 4, year: 2027, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Cauayan Solar Power Project; Phase 1", developer: "SMC Global Light and Power Corp.", capacity: 270.000, lat: 16.95, lon: 121.80 },
+            { id: 40, gea: 4, year: 2027, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "San Vicente Solar Power Project", developer: "Citadel Energy Corporation", capacity: 140.000, lat: 14.115, lon: 122.885 },
+            { id: 41, gea: 4, year: 2027, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Villaverde Ground-Mounted Solar-Photovoltaic Project", developer: "Verde Radiant Power Corporation", capacity: 11.840, lat: 16.513, lon: 121.012 },
+            { id: 42, gea: 4, year: 2027, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Libmanan Solar Power Project", developer: "Green PV Energy Corporation", capacity: 49.900, lat: 13.692, lon: 123.064 },
+            { id: 43, gea: 4, year: 2027, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Sta. Ignacia Tarlac Solar Power Plant Project Phase 1", developer: "Sta. Ignacia Tarlac Solar Power Corporation", capacity: 18.000, lat: 15.613, lon: 120.442 },
+            { id: 44, gea: 4, year: 2027, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Earthlight Concepcion Solar Power Project; Phase 1", developer: "Joy-Nostalg Solaris Incorporated", capacity: 30.400, lat: 15.326, lon: 120.658 },
+            { id: 45, gea: 4, year: 2027, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Zamboanguita Solar Power Project", developer: "Zamboanguita Solar Power Corporation", capacity: 50.000, lat: 9.156, lon: 123.205 },
+            { id: 46, gea: 4, year: 2027, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "San Miguel Solar Power Project", developer: "Sunpalo Solar Energy, Inc.", capacity: 150.000, lat: 15.145, lon: 120.975 },
+            { id: 47, gea: 4, year: 2027, grid: "Mindanao", type: "GROUND-MOUNTED SOLAR", facilityName: "Malita Solar Power Project; Phase 2", developer: "SMC Global Light and Power Corp.", capacity: 27.000, lat: 6.3935, lon: 125.6168 },
+            { id: 48, gea: 4, year: 2027, grid: "Mindanao", type: "GROUND-MOUNTED SOLAR", facilityName: "SPPC Solar Power Project (Phase 1)", developer: "Alabel Solar Energy Corporation", capacity: 30.000, lat: 6.103, lon: 125.286 },
+            { id: 49, gea: 4, year: 2027, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Ning Ning Catmon Sta. Maria Rooftop Solar Power Project", developer: "Joy-Nostalg Solaris Incorporated", capacity: 4.019, lat: 14.814, lon: 120.963 },
+            { id: 50, gea: 4, year: 2027, grid: "Luzon", type: "ROOF-MOUNTED SOLAR", facilityName: "Ning Ning Dolores Magalang Rooftop Solar Power Project", developer: "Joy-Nostalg Solaris Incorporated", capacity: 5.353, lat: 15.223, lon: 120.661 },
+            { id: 51, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Magat Floating Solar Power Project", developer: "Sn Aboitiz Power - Magat, Inc", capacity: 50.000, lat: 16.795, lon: 121.463 },
+            { id: 52, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Cabuyao 2 Floating PV Power Plant", developer: "Nortesol Inc.", capacity: 72.000, lat: 14.305, lon: 121.151 },
+            { id: 53, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Cabuyao 1 Floating PV Power Plant", developer: "Nortesol II Inc.", capacity: 72.000, lat: 14.302, lon: 121.148 },
+            { id: 54, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Calamba Floating PV Solar Power Project", developer: "Norteson Incorporated", capacity: 72.000, lat: 14.240, lon: 121.180 },
+            { id: 55, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Cabuyao 3 Floating PV Power Plant", developer: "Nortesol IV, Inc.", capacity: 72.000, lat: 14.299, lon: 121.153 },
+            { id: 56, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Victoria 1 Floating PV Power Plant,", developer: "Nortesollv, Inc.", capacity: 72.000, lat: 14.230, lon: 121.230 },
+            { id: 57, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Bay 2 Floating PV Power Plant", developer: "NortesolIV, Inc.", capacity: 72.000, lat: 14.202, lon: 121.282 },
+            { id: 58, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Cabuyao 5 Floating PV Power Plant", developer: "NEWASIA POWER ENERGY II CORP.", capacity: 72.000, lat: 14.308, lon: 121.145 },
+            { id: 59, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Cabuyao 4 Floating Solar PV Power Plant", developer: "NEWASIA POWER ENERGY CORP.", capacity: 72.000, lat: 14.296, lon: 121.156 },
+            { id: 60, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Bay 1 Floating PV Power Plant", developer: "Newasia Power Energy Corp.", capacity: 72.000, lat: 14.199, lon: 121.279 },
+            { id: 61, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Sta. Rosa Floating PV Power Plant", developer: "Newasia Power Energy II Corp.", capacity: 72.000, lat: 14.330, lon: 121.120 },
+            { id: 62, gea: 4, year: 2027, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Macabebe Floating PV Power Plant", developer: "NEWASIA POWER ENERGY III CORP.", capacity: 95.000, lat: 14.85, lon: 120.68 },
+            { id: 63, gea: 4, year: 2027, grid: "Visayas", type: "FLOATING SOLAR", facilityName: "Sagay Solar on Water PV Power Plant", developer: "LakeSun Energy Inc.", capacity: 70.000, lat: 10.95, lon: 123.45 },
+            { id: 64, gea: 4, year: 2027, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Sorsogon 2 Wind Power Project", developer: "Econergy Renewable Power Philippines Inc.", capacity: 200.000, lat: 12.973, lon: 124.008 },
+            { id: 65, gea: 4, year: 2027, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Presentacion 2 Wind Power Project", developer: "Wind Renewable Energy Corporation", capacity: 49.500, lat: 13.842, lon: 123.635 },
+            { id: 66, gea: 4, year: 2027, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Quezon Wind Power Project (Phase 2)", developer: "Quezon Wind Energy Corp.", capacity: 208.000, lat: 14.75, lon: 121.58 },
+            { id: 67, gea: 4, year: 2027, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Northern Wind Power Project", developer: "Econergy Renewable Power Philippines Inc.", capacity: 100.000, lat: 12.00, lon: 125.00 },
+            { id: 68, gea: 4, year: 2027, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Cauayan Wind Project", developer: "Envision Energy Philippines Corporation", capacity: 50.000, lat: 16.95, lon: 121.85 },
+            { id: 69, gea: 4, year: 2028, grid: "Luzon", type: "IRESS", facilityName: "Talingaan-Laoag Solar Power Project", developer: "North Luzon Green Power, Inc.", capacity: 100.000, lat: 18.195, lon: 120.593 },
+            { id: 70, gea: 4, year: 2028, grid: "Luzon", type: "IRESS", facilityName: "Luna Solar Power Project", developer: "South Cleanergy Inc.", capacity: 120.000, lat: 16.852, lon: 120.425 },
+            { id: 71, gea: 4, year: 2028, grid: "Mindanao", type: "IRESS", facilityName: "Kalandagan Solar Power Project", developer: "Olympia Solar Power Corporation", capacity: 54.000, lat: 6.783, lon: 124.596 },
+            { id: 72, gea: 4, year: 2028, grid: "Luzon", type: "IRESS", facilityName: "Titan V Solar Power Project; Phase 2", developer: "Apolaki Four Inc.", capacity: 49.700, lat: 8.55, lon: 126.38 },
+            { id: 73, gea: 4, year: 2028, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Cauayan Solar Power Project; Phase 2", developer: "SMC Global Light and Power Corp.", capacity: 630.000, lat: 16.95, lon: 121.80 },
+            { id: 74, gea: 4, year: 2028, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Isabela Solar Power Project; Phase 1-3", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 16.90, lon: 121.75 },
+            { id: 75, gea: 4, year: 2028, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Isabela Solar Power Project; Phase 1-2", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 16.90, lon: 121.75 },
+            { id: 76, gea: 4, year: 2028, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Victorias Solar Power Plant", developer: "Victorias Green Energy Corp.", capacity: 85.000, lat: 10.91, lon: 123.06 },
+            { id: 77, gea: 4, year: 2028, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Earthlight San Fernando Barotac Viejo Solar Power Project; Phase 1", developer: "Joy-Nostalg Solaris Incorporated", capacity: 55.500, lat: 11.052, lon: 122.953 },
+            { id: 78, gea: 4, year: 2028, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Ajuy 1 Solar Power Project; Phase 2", developer: "Joy-Nostalg Solaris Incorporated", capacity: 23.967, lat: 11.173, lon: 123.024 },
+            { id: 79, gea: 4, year: 2028, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Viejo Iloilo Solar Power Project", developer: "JICA Power and Development Corporation", capacity: 158.400, lat: 11.052, lon: 122.953 },
+            { id: 80, gea: 4, year: 2028, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Ilog Solar Power Project", developer: "Western Visayas Solar Energy Corp.", capacity: 140.100, lat: 10.142, lon: 122.776 },
+            { id: 81, gea: 4, year: 2028, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Bohol Solar Power Project", developer: "Bohol Renewable Power Corp. (Isla Este Renewables Corporation)", capacity: 17.500, lat: 9.85, lon: 124.46 },
+            { id: 82, gea: 4, year: 2028, grid: "Mindanao", type: "GROUND-MOUNTED SOLAR", facilityName: "Malita Solar Power Project; Phase 3", developer: "SMC Global Light and Power Corp.", capacity: 30.000, lat: 6.3935, lon: 125.6168 },
+            { id: 83, gea: 4, year: 2028, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Angat Solar Power Project; Phase 1", developer: "SMC Global Light and Power Corp.", capacity: 540.000, lat: 14.912, lon: 121.053 },
+            { id: 84, gea: 4, year: 2028, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "San Marcelino Floating Solar Power Project", developer: "Northern Sun Radiance Inc.", capacity: 130.000, lat: 14.98, lon: 120.20 },
+            { id: 85, gea: 4, year: 2028, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Liberty Solar Power Project; Phase B", developer: "Liberty Solar Energy Corporation", capacity: 34.000, lat: null, lon: null },
+            { id: 86, gea: 4, year: 2028, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Liberty Solar Power Project; Phase A", developer: "Liberty Solar Energy Corporation", capacity: 34.000, lat: null, lon: null },
+            { id: 87, gea: 4, year: 2028, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "NKS One Floating Solar Power Project; Phase 2", developer: "NKS Solar One Inc.", capacity: 47.000, lat: null, lon: null },
+            { id: 88, gea: 4, year: 2028, grid: "Visayas", type: "FLOATING SOLAR", facilityName: "Silay Solar on Water PV Power Plant", developer: "Limnelios Inc.", capacity: 64.000, lat: 10.80, lon: 122.98 },
+            { id: 89, gea: 4, year: 2028, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Pagsanjan Wind Project", developer: "Envision Energy Philippines Corporation", capacity: 200.000, lat: 14.35, lon: 121.55 },
+            { id: 90, gea: 4, year: 2028, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Tayabas North Wind Energy Project (Phase 1)", developer: "Clean Tech Global Renewables, Inc.", capacity: 96.000, lat: 14.024, lon: 121.593 },
+            { id: 91, gea: 4, year: 2028, grid: "Luzon", type: "ONSHORE WIND", facilityName: "San Nicolas Wind Power Project", developer: "San Nicolas Wind Corp.", capacity: 200.000, lat: 18.172, lon: 120.735 },
+            { id: 92, gea: 4, year: 2028, grid: "Visayas", type: "ONSHORE WIND", facilityName: "Alegria Wind Power Project", developer: "MC Project Solutions Inc.", capacity: 56.000, lat: 9.774, lon: 123.362 },
+            { id: 93, gea: 4, year: 2028, grid: "Visayas", type: "ONSHORE WIND", facilityName: "Lavezares Wind Project", developer: "Envision Energy Philippines Corporation", capacity: 50.000, lat: 12.553, lon: 124.336 },
+            { id: 94, gea: 4, year: 2028, grid: "Visayas", type: "ONSHORE WIND", facilityName: "Leyte Wind Project", developer: "Envision Energy Philippines Corporation", capacity: 110.000, lat: 10.05, lon: 125.25 },
+            { id: 95, gea: 4, year: 2029, grid: "Luzon", type: "IRESS", facilityName: "Currimao Solar Power Project", developer: "Northern Sun Power, Inc.", capacity: 190.000, lat: 18.062, lon: 120.485 },
+            { id: 96, gea: 4, year: 2029, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Isabela Solar Power Project: Phase 3-2", developer: "Citicore Renewable Energy Corporation", capacity: 40.000, lat: 16.90, lon: 121.75 },
+            { id: 97, gea: 4, year: 2029, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Isabela Solar Power Project; Phase 2-3", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 16.90, lon: 121.75 },
+            { id: 98, gea: 4, year: 2029, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Isabela Solar Power Project; Phase 2-2", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 16.90, lon: 121.75 },
+            { id: 99, gea: 4, year: 2029, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Isabela Solar Power Project: Phase 3-1", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 16.90, lon: 121.75 },
+            { id: 100, gea: 4, year: 2029, grid: "Luzon", type: "GROUND-MOUNTED SOLAR", facilityName: "Isabela Solar Power Project; Phase 2-1", developer: "Citicore Renewable Energy Corporation", capacity: 50.000, lat: 16.90, lon: 121.75 },
+            { id: 101, gea: 4, year: 2029, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Earthlight San Fernando Barotac Viejo Solar Power Project; Phase 2", developer: "Joy-Nostalg Solaris Incorporated", capacity: 55.500, lat: 11.052, lon: 122.953 },
+            { id: 102, gea: 4, year: 2029, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Dagohoy Solar Power Project", developer: "Dagohoy Green Energy Corporation", capacity: 20.160, lat: 9.943, lon: 124.235 },
+            { id: 103, gea: 4, year: 2029, grid: "Visayas", type: "GROUND-MOUNTED SOLAR", facilityName: "Panitan Solar Power Project", developer: "EcoSolar Energy Corporation", capacity: 70.080, lat: 11.385, lon: 122.793 },
+            { id: 104, gea: 4, year: 2029, grid: "Mindanao", type: "GROUND-MOUNTED SOLAR", facilityName: "Malita Solar Power Project; Phase 4", developer: "SMC Global Light and Power Corp.", capacity: 120.000, lat: 6.3935, lon: 125.6168 },
+            { id: 105, gea: 4, year: 2029, grid: "Luzon", type: "FLOATING SOLAR", facilityName: "Angat Solar Power Project; Phase 2", developer: "SMC Global Light and Power Corp.", capacity: 500.000, lat: 14.912, lon: 121.053 },
+            { id: 106, gea: 4, year: 2029, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Calabanga Wind Project", developer: "Envision Energy Philippines Corporation", capacity: 200.000, lat: 13.75, lon: 123.20 },
+            { id: 107, gea: 4, year: 2029, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Quezon Wind Power Project (Phase 1)", developer: "Atimonan Windkraft Corporation", capacity: 67.000, lat: 14.004, lon: 121.916 },
+            { id: 108, gea: 4, year: 2029, grid: "Luzon", type: "ONSHORE WIND", facilityName: "Ilosong Wind Power Project (Phase 1)", developer: "Ilosong Wind Corp.", capacity: 200.000, lat: 13.58, lon: 124.23 },
+            { id: 109, gea: 4, year: 2029, grid: "Visayas", type: "ONSHORE WIND", facilityName: "Bais Wind Project", developer: "Envision Energy Philippines Corporation", capacity: 150.000, lat: 9.60, lon: 123.08 },
+            { id: 110, gea: 4, year: 2029, grid: "Mindanao", type: "ONSHORE WIND", facilityName: "Caraga Wind Power Project Phase 1", developer: "Caraga Wind Energy Corporation", capacity: 101.000, lat: 9.82, lon: 125.50 },
+            { id: 111, gea: 4, year: 2029, grid: "Mindanao", type: "ONSHORE WIND", facilityName: "Caraga Wind Power Project Phase 2", developer: "Caraga Wind Energy Corporation", capacity: 50.000, lat: 9.82, lon: 125.50 },
+        ];
+        
+        // --- DOM ELEMENTS ---
+        const searchFilter = document.getElementById('search-filter');
+        const geaFilter = document.getElementById('gea-filter');
+        const gridFilter = document.getElementById('grid-filter');
+        const yearFilter = document.getElementById('year-filter');
+        const typeFilter = document.getElementById('type-filter');
+        const developerFilter = document.getElementById('developer-filter');
+        const exportBtn = document.getElementById('export-csv');
+        const resetBtn = document.getElementById('reset-filters');
+        const tableBody = document.getElementById('projects-table-body');
+        const totalCapacityEl = document.getElementById('total-capacity');
+        const projectCountEl = document.getElementById('project-count');
+        const noResultsEl = document.getElementById('no-results');
+        const tableHeaders = document.querySelectorAll('th[data-sort]');
+        const projectModal = document.getElementById('project-modal');
+        const projectModalContent = document.getElementById('project-modal-content');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        const developerLeaderboardEl = document.getElementById('developer-leaderboard');
+
+        // --- STATE & INSTANCES ---
+        let sortState = { column: 'year', direction: 'asc' };
+        let map, markerLayer;
+        let currentFilteredProjects = [];
+        let geaRoundChart, techDistChart, targetChart;
+
+        // --- FUNCTIONS ---
+
+        function initMap() {
+            map = L.map('map').setView([12.8797, 121.7740], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+            markerLayer = L.layerGroup().addTo(map);
+        }
+
+        function updateMap(projectList) {
+            markerLayer.clearLayers();
+            projectList.forEach(project => {
+                if (project.lat && project.lon) {
+                    const iconHtml = `<div style="background-color: ${iconColors[project.type] || '#888'};" class="w-4 h-4 rounded-full border-2 border-white shadow-md"></div>`;
+                    const customIcon = L.divIcon({ html: iconHtml, className: 'custom-map-icon', iconSize: [16, 16], iconAnchor: [8, 8] });
+                    const popupContent = `<div class="font-sans"><div class="font-bold text-base mb-1">${project.facilityName} (GEA-${project.gea})</div><div class="text-sm text-gray-600">${project.developer}</div><hr class="my-2"><div class="text-xs"><strong>Capacity:</strong> ${formatNumber(project.capacity, 3)} MW<br><strong>Technology:</strong> ${project.type}</div></div>`;
+                    const marker = L.marker([project.lat, project.lon], { icon: customIcon }).bindPopup(popupContent);
+                    markerLayer.addLayer(marker);
+                }
+            });
+        }
+
+        function zoomToGrid(grid) {
+            const gridViews = { Luzon: [[15.5, 121], 7], Visayas: [[10.7, 123.5], 8], Mindanao: [[7.8, 125], 7], all: [[12.8797, 121.7740], 6] };
+            if(map && gridViews[grid]) { map.flyTo(...gridViews[grid]); }
+        }
+
+        function showProjectModal(projectId) {
+            // A bit of a hack since GEA-4 IDs are not unique across all GEAs.
+            const project = projects.find(p => p.id === projectId && p.gea === parseInt(geaFilter.value)) || projects.find(p => p.id === projectId);
+            if (!project) return;
+            modalTitle.textContent = project.facilityName;
+            modalBody.innerHTML = `<div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm"><div><dt class="text-gray-500 dark:text-gray-400">GEA Round</dt><dd class="text-gray-900 dark:text-gray-100 font-bold">GEA-${project.gea}</dd></div><div><dt class="text-gray-500 dark:text-gray-400">Target Year</dt><dd class="text-gray-900 dark:text-gray-100 font-medium">${project.year}</dd></div><div><dt class="text-gray-500 dark:text-gray-400">Developer</dt><dd class="text-gray-900 dark:text-gray-100 font-medium">${project.developer}</dd></div><div><dt class="text-gray-500 dark:text-gray-400">Grid</dt><dd class="text-gray-900 dark:text-gray-100 font-medium">${project.grid}</dd></div><div><dt class="text-gray-500 dark:text-gray-400">Technology</dt><dd class="text-gray-900 dark:text-gray-100 font-medium">${project.type}</dd></div><div><dt class="text-gray-500 dark:text-gray-400">Awarded Capacity</dt><dd class="text-gray-900 dark:text-gray-100 font-medium">${formatNumber(project.capacity)} MW</dd></div></div>`;
+            projectModal.classList.remove('opacity-0', 'pointer-events-none');
+            projectModalContent.classList.remove('scale-95');
+        }
+
+        function hideProjectModal() {
+            projectModal.classList.add('opacity-0', 'pointer-events-none');
+            projectModalContent.classList.add('scale-95');
+        }
+
+        function formatNumber(value, digits = 3) { return new Intl.NumberFormat('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value); }
+        
+        function renderTable(projectList) {
+            tableBody.innerHTML = '';
+            noResultsEl.classList.toggle('hidden', projectList.length > 0);
+            projectList.forEach(project => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
+                row.dataset.projectId = project.id;
+                row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">GEA-${project.gea}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">${project.year}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${project.grid}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${project.type}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 max-w-xs truncate" title="${project.facilityName}">${project.facilityName}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate" title="${project.developer}">${project.developer}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 font-medium text-right">${formatNumber(project.capacity)}</td>`;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function updateDashboard(projectList) {
+            totalCapacityEl.textContent = formatNumber(projectList.reduce((sum, p) => sum + p.capacity, 0), 2);
+            projectCountEl.textContent = projectList.length;
+        }
+
+        function populateFilters() {
+            const years = [...new Set(projects.map(p => p.year))].sort((a,b) => a-b);
+            yearFilter.innerHTML = '<option value="all">All Years</option>';
+            years.forEach(year => yearFilter.add(new Option(year, year)));
+
+            const types = [...new Set(projects.map(p => p.type))].sort();
+            typeFilter.innerHTML = '<option value="all">All Technologies</option>';
+            types.forEach(type => typeFilter.add(new Option(type, type)));
+            
+            const developers = [...new Set(projects.map(p => p.developer))].sort();
+            developerFilter.innerHTML = '<option value="all">All Developers</option>';
+            developers.forEach(dev => developerFilter.add(new Option(dev, dev)));
+        }
+
+        function updateCharts(projectList) {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#f9fafb' : '#1f2937';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            Chart.defaults.color = textColor;
+
+            // --- Technology Distribution (Donut Chart) ---
+            const dataByTech = projectList.reduce((acc, p) => { acc[p.type] = (acc[p.type] || 0) + p.capacity; return acc; }, {});
+            const techLabels = Object.keys(dataByTech).sort();
+            const techData = techLabels.map(label => dataByTech[label]);
+            const techColors = techLabels.map(label => iconColors[label] || '#888');
+            if(techDistChart) techDistChart.destroy();
+            techDistChart = new Chart(document.getElementById('tech-dist-chart').getContext('2d'), { 
+                type: 'doughnut', 
+                data: { labels: techLabels, datasets: [{ data: techData, backgroundColor: techColors, borderColor: isDarkMode ? '#1f2937' : '#fff' }] },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+
+            // --- Capacity by GEA Round (Stacked Bar Chart) ---
+            const allTechs = [...new Set(projects.map(p => p.type))].sort();
+            const geaRounds = [1, 2, 3, 4];
+            const geaDatasets = allTechs.map(tech => {
+                return {
+                    label: tech,
+                    data: geaRounds.map(round => {
+                        return projectList
+                            .filter(p => p.gea === round && p.type === tech)
+                            .reduce((sum, p) => sum + p.capacity, 0);
+                    }),
+                    backgroundColor: iconColors[tech] || '#888'
+                };
+            });
+            if(geaRoundChart) geaRoundChart.destroy();
+            geaRoundChart = new Chart(document.getElementById('gea-round-chart').getContext('2d'), {
+                type: 'bar',
+                data: { labels: ['GEA-1', 'GEA-2', 'GEA-3', 'GEA-4'], datasets: geaDatasets },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: value => `${value} MW` } } }
+                }
+            });
+
+            // --- Target vs Awarded Chart ---
+            const awardedByGea = geaRounds.map(round => projects.filter(p => p.gea === round).reduce((sum, p) => sum + p.capacity, 0));
+            const targets = geaRounds.map(round => geaTargets[round].total || 0);
+            if(targetChart) targetChart.destroy();
+            targetChart = new Chart(document.getElementById('target-chart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['GEA-1', 'GEA-2', 'GEA-3', 'GEA-4'],
+                    datasets: [
+                        { label: 'Awarded (MW)', data: awardedByGea, backgroundColor: '#4ade80' },
+                        { label: 'Target (MW)', data: targets, backgroundColor: '#f87171' }
+                    ]
+                },
+                options: { responsive: true, indexAxis: 'y', scales: { x: { ticks: { callback: value => `${value} MW` } } } }
+            });
+        }
+
+        function updateLeaderboard(projectList) {
+            const dataByDev = projectList.reduce((acc, p) => { acc[p.developer] = (acc[p.developer] || 0) + p.capacity; return acc; }, {});
+            const sortedDevs = Object.entries(dataByDev).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            
+            let html = '';
+            if (sortedDevs.length === 0) {
+                html = `<div class="text-center text-gray-500 dark:text-gray-400 p-4">No developers found.</div>`;
+            } else {
+                sortedDevs.forEach(([name, capacity], index) => {
+                    html += `<div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                                <div class="flex items-center min-w-0">
+                                    <span class="text-sm font-bold text-gray-600 dark:text-gray-300 w-6">${index + 1}.</span>
+                                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate" title="${name}">${name}</p>
+                                </div>
+                                <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0 ml-2">${formatNumber(capacity, 2)} MW</p>
+                            </div>`;
+                });
+            }
+            developerLeaderboardEl.innerHTML = html;
+        }
+
+        function applyFiltersAndSort() {
+            const searchTerm = searchFilter.value.toLowerCase();
+            const selectedGea = geaFilter.value;
+            const selectedGrid = gridFilter.value;
+            const selectedYear = yearFilter.value;
+            const selectedType = typeFilter.value;
+            const selectedDeveloper = developerFilter.value;
+
+            currentFilteredProjects = projects.filter(p => 
+                (searchTerm === '' || p.facilityName.toLowerCase().includes(searchTerm) || p.developer.toLowerCase().includes(searchTerm)) &&
+                (selectedGea === 'all' || p.gea == selectedGea) &&
+                (selectedGrid === 'all' || p.grid === selectedGrid) &&
+                (selectedYear === 'all' || p.year == selectedYear) &&
+                (selectedType === 'all' || p.type === selectedType) &&
+                (selectedDeveloper === 'all' || p.developer === selectedDeveloper)
+            );
+
+            currentFilteredProjects.sort((a, b) => { let comp = 0; if (a[sortState.column] > b[sortState.column]) comp = 1; else if (a[sortState.column] < b[sortState.column]) comp = -1; return sortState.direction === 'desc' ? comp * -1 : comp; });
+            
+            renderTable(currentFilteredProjects);
+            updateDashboard(currentFilteredProjects);
+            updateCharts(currentFilteredProjects);
+            updateMap(currentFilteredProjects);
+            updateLeaderboard(currentFilteredProjects);
+        }
+
+        function resetFilters() {
+            searchFilter.value = ''; geaFilter.selectedIndex = 0; gridFilter.selectedIndex = 0; yearFilter.selectedIndex = 0; typeFilter.selectedIndex = 0; developerFilter.selectedIndex = 0;
+            sortState = { column: 'year', direction: 'asc' };
+            applyFiltersAndSort();
+            zoomToGrid('all');
+        }
+
+        function exportToCsv() {
+            const headers = ["ID", "GEA", "Year", "Grid", "Technology", "Project Name", "Developer", "Capacity (MW)"];
+            const rows = currentFilteredProjects.map(p => [ p.id, p.gea, p.year, p.grid, p.type, `"${p.facilityName.replace(/"/g, '""')}"`, `"${p.developer.replace(/"/g, '""')}"`, p.capacity ].join(','));
+            const csv = "data:text/csv;charset=utf-8," + [headers.join(',')].concat(rows).join('\n');
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csv));
+            link.setAttribute("download", "gea_data_export.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- DARK MODE ---
+        function setDarkMode(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+            // Re-render charts for color update
+            applyFiltersAndSort(); 
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('darkMode', !isDark);
+            setDarkMode(!isDark);
+        });
+
+        // --- EVENT LISTENERS ---
+        [searchFilter, geaFilter, yearFilter, typeFilter, developerFilter].forEach(el => el.addEventListener('input', applyFiltersAndSort));
+        gridFilter.addEventListener('change', () => { applyFiltersAndSort(); zoomToGrid(gridFilter.value); });
+        exportBtn.addEventListener('click', exportToCsv);
+        resetBtn.addEventListener('click', resetFilters);
+        tableHeaders.forEach(header => header.addEventListener('click', () => {
+            const column = header.dataset.sort;
+            sortState.direction = (sortState.column === column && sortState.direction === 'asc') ? 'desc' : 'asc';
+            sortState.column = column;
+            applyFiltersAndSort();
+        }));
+        tableBody.addEventListener('click', (event) => {
+            const row = event.target.closest('tr');
+            if (row && row.dataset.projectId) {
+                const projectId = parseInt(row.dataset.projectId);
+                // Find project based on ID and current GEA filter to resolve duplicates
+                const selectedGea = geaFilter.value;
+                let projectToView = currentFilteredProjects.find(p => p.id === projectId);
+                if (selectedGea !== 'all') {
+                    projectToView = currentFilteredProjects.find(p => p.id === projectId && p.gea == selectedGea) || projectToView;
+                }
+                if (projectToView) showProjectModal(projectToView.id, projectToView.gea);
+
+            }
+        });
+        modalCloseBtn.addEventListener('click', hideProjectModal);
+        projectModal.addEventListener('click', (event) => { if (event.target === projectModal) hideProjectModal(); });
+
+        // --- WIND TURBINE ANIMATION ---
+        const turbineBlades = document.getElementById('turbine-blades');
+        let currentRotation = 0, rotationSpeed = 0.5;
+        function animateTurbine() { currentRotation = (currentRotation + rotationSpeed) % 360; turbineBlades.style.transform = `rotate(${currentRotation}deg)`; requestAnimationFrame(animateTurbine); }
+        
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            populateFilters();
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const savedTheme = localStorage.getItem('darkMode');
+            setDarkMode(savedTheme === 'true' || (savedTheme === null && prefersDark));
+            applyFiltersAndSort();
+            animateTurbine();
+        });
+    </script>
+</body>
+</html>
+
+
