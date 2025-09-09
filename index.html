@@ -1051,11 +1051,59 @@
              }
         }));
         
-
         // --- WIND TURBINE ANIMATION ---
         const turbineBlades = document.getElementById('turbine-blades');
-        let currentRotation = 0, rotationSpeed = 0.5;
-        function animateTurbine() { currentRotation = (currentRotation + rotationSpeed) % 360; turbineBlades.style.transform = `rotate(${currentRotation}deg)`; requestAnimationFrame(animateTurbine); }
+        let currentRotation = 0;
+        let rotationSpeed = 0.5;
+        const baseSpeed = 0.5;
+        let slowdownInterval;
+
+        function animateTurbine() {
+            currentRotation = (currentRotation + rotationSpeed) % 360;
+            turbineBlades.style.transform = `rotate(${currentRotation}deg)`;
+            requestAnimationFrame(animateTurbine);
+        }
+        
+        // Function to smoothly slow the turbine down to its base speed
+        function slowDown() {
+            clearInterval(slowdownInterval); // Stop any previous slowdown
+            const startSpeed = rotationSpeed;
+            const reduction = startSpeed - baseSpeed;
+            const duration = 4000; // 4 seconds to slow down
+            const steps = 200;
+            const stepReduction = reduction / steps;
+
+            if (reduction <= 0) return; // Already at or below base speed
+
+            slowdownInterval = setInterval(() => {
+                rotationSpeed -= stepReduction;
+                if (rotationSpeed <= baseSpeed) {
+                    rotationSpeed = baseSpeed;
+                    clearInterval(slowdownInterval);
+                }
+            }, duration / steps);
+        }
+
+        // --- Event Listener for clicking the screen ---
+        document.addEventListener('click', (event) => {
+            // Ignore clicks on interactive elements
+            if (event.target.closest('select, button, input, a, .leaflet-container, [data-developer]')) {
+                 return;
+            }
+            // Give a strong gust of wind on click
+            rotationSpeed = 6.0 + Math.random() * 4; // Speed between 6 and 10
+            slowDown(); // Start slowing down after the gust
+        });
+
+        // --- Interval for random wind gusts ---
+        setInterval(() => {
+            // Only create a random gust if the turbine is at its base speed
+            if (rotationSpeed === baseSpeed && Math.random() > 0.5) { // Increased probability
+                // A moderate random gust
+                rotationSpeed = 3.0 + Math.random() * 3; // Speed between 3 and 6
+                setTimeout(slowDown, 2000 + Math.random() * 2000); // Slow down after 2-4 seconds
+            }
+        }, 3000); // Check for a gust every 3 seconds
         
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -1070,5 +1118,6 @@
     </script>
 </body>
 </html>
+
 
 
